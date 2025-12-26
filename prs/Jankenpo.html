@@ -26,7 +26,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            /* Altura dinâmica para mobile */
+            height: 100vh;
+            height: 100dvh;
             width: 100vw;
         }
 
@@ -50,7 +52,7 @@
         .game-canvas {
             background: var(--neon-yellow);
             width: 100vw;
-            height: 100vh;
+            height: 100%;
             border: none;
             box-shadow: none;
             position: relative;
@@ -85,7 +87,6 @@
             font-size: 3.5rem;
             line-height: 0.9;
             color: white;
-            /* Sombra atualizada: apenas preta conforme pedido */
             text-shadow: 4px 4px 0 var(--dark-ink);
             animation: glitch 3s infinite;
         }
@@ -170,7 +171,6 @@
 
         .btn-choice:active { transform: translate(4px, 4px); box-shadow: 0 0 0; }
 
-        /* Botão Jogar Ajustado: Mantém a inclinação no clique */
         .btn-start-wrapper {
             position: relative;
             width: 100%;
@@ -189,7 +189,7 @@
             font-size: 2.8rem;
             padding: 15px 0;
             color: white;
-            transform: rotate(4deg) skewX(-2deg); /* Rotação fixa */
+            transform: rotate(4deg) skewX(-2deg);
             box-shadow: 0px 8px 0px var(--dark-ink);
             transition: transform 0.1s, box-shadow 0.1s;
             font-weight: bold;
@@ -206,7 +206,6 @@
             text-align: center;
         }
 
-        /* Mantém a rotação e skew ao clicar, apenas diminui a escala e a sombra */
         .btn-start:active {
             transform: rotate(4deg) skewX(-2deg) scale(0.96); 
             box-shadow: 0px 4px 0px var(--dark-ink);
