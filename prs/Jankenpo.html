@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jankenpô Hyper-Punk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+        
+        :root {
+            --neon-yellow: #f1f500;
+            --neon-pink: #ff007a;
+            --neon-purple: #8a2be2;
+            --neon-cyan: #00f3ff;
+            --dark-ink: #0d0d0d;
+            --bg-lilas: #b19cd9;
+            --bg-lilas-dark: #967bb6;
+        }
+
+        body {
+            font-family: 'Bangers', cursive;
+            background-color: var(--bg-lilas);
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Fundo Geométrico de Triângulos Lilás */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background-color: var(--bg-lilas);
+            background-image:  linear-gradient(30deg, var(--bg-lilas-dark) 12%, transparent 12.5%, transparent 87%, var(--bg-lilas-dark) 87.5%, var(--bg-lilas-dark)),
+            linear-gradient(150deg, var(--bg-lilas-dark) 12%, transparent 12.5%, transparent 87%, var(--bg-lilas-dark) 87.5%, var(--bg-lilas-dark)),
+            linear-gradient(30deg, var(--bg-lilas-dark) 12%, transparent 12.5%, transparent 87%, var(--bg-lilas-dark) 87.5%, var(--bg-lilas-dark)),
+            linear-gradient(150deg, var(--bg-lilas-dark) 12%, transparent 12.5%, transparent 87%, var(--bg-lilas-dark) 87.5%, var(--bg-lilas-dark)),
+            linear-gradient(60deg, var(--bg-lilas-dark) 25%, transparent 25.5%, transparent 75%, var(--bg-lilas-dark) 75%, var(--bg-lilas-dark)),
+            linear-gradient(60deg, var(--bg-lilas-dark) 25%, transparent 25.5%, transparent 75%, var(--bg-lilas-dark) 75%, var(--bg-lilas-dark));
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+        }
+
+        /* Canvas do Jogo */
+        .game-canvas {
+            background: var(--neon-yellow);
+            width: 92vw;
+            max-width: 440px;
+            height: 85vh;
+            border: 10px solid var(--dark-ink);
+            box-shadow: 20px 20px 0px var(--dark-ink);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .header-banner {
+            background: var(--neon-pink);
+            color: white;
+            padding: 12px;
+            border-bottom: 8px solid var(--dark-ink);
+            text-align: center;
+            transform: skewY(-2deg);
+            margin-top: -5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 20;
+        }
+
+        .glitch-title {
+            font-size: 5.5rem;
+            line-height: 0.9;
+            color: white;
+            text-shadow: 4px 4px 0 var(--dark-ink), -2px -2px 0 var(--neon-cyan);
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            2% { transform: translate(-5px, 2px) skew(5deg); }
+            4% { transform: translate(5px, -2px) skew(-5deg); }
+            6% { transform: translate(0); }
+            100% { transform: translate(0); }
+        }
+
+        .arena {
+            flex: 1;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .hand-box {
+            background: white;
+            border: 6px solid var(--dark-ink);
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 10px 10px 0px var(--dark-ink);
+            font-size: 5rem;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .cpu-hand { background: var(--neon-cyan); transform: scaleX(-1); }
+
+        @keyframes handShake {
+            0%, 100% { transform: translateY(0) rotate(5deg); }
+            50% { transform: translateY(-40px) rotate(-10deg); }
+        }
+        .shaking { animation: handShake 0.15s infinite; }
+
+        @keyframes screenImpact {
+            0% { transform: translate(0,0); }
+            10% { transform: translate(-8px, 8px); }
+            20% { transform: translate(8px, -8px); }
+            100% { transform: translate(0,0); }
+        }
+        .impact { animation: screenImpact 0.2s ease-out; }
+
+        .controls {
+            background: var(--dark-ink);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .btn-choice {
+            background: white;
+            border: 4px solid var(--dark-ink);
+            font-size: 2.8rem;
+            padding: 12px 0;
+            box-shadow: 6px 6px 0 var(--neon-pink);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .btn-choice:hover {
+            transform: translateY(-5px);
+            background: var(--neon-yellow);
+        }
+
+        .btn-choice:active { transform: translate(4px, 4px); box-shadow: 0 0 0; }
+
+        .btn-nav {
+            background: var(--dark-ink);
+            color: white;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-nav:hover { background: var(--neon-pink); }
+
+        .swipe-overlay {
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: var(--dark-ink);
+            z-index: 1000;
+            transform: translate(-100%, -100%) rotate(-45deg);
+            pointer-events: none;
+            visibility: hidden;
+        }
+        .swipe-overlay.active {
+            visibility: visible;
+            transform: translate(100%, 100%) rotate(-45deg);
+            transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1);
+        }
+
+        .score-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+            color: #fff;
+            padding: 10px 15px;
+            font-size: 1.1rem;
+            border-bottom: 4px solid var(--neon-purple);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+
+    <div id="main-canvas" class="game-canvas">
+        <div id="swipe" class="swipe-overlay"></div>
+
+        <!-- TELA INICIAL -->
+        <div id="screen-menu" class="flex flex-col h-full items-center justify-center p-8 text-center">
+            <div class="mb-4 bg-black text-white px-4 py-1 skew-x-[-15deg] font-bold text-sm tracking-widest">EDITION MMXXV</div>
+            <h1 class="glitch-title italic mb-10">JANKENPÔ<br><span class="text-neon-pink">SUPREMO</span></h1>
+            
+            <button onclick="changeScreen('game')" class="btn-choice w-full py-6 bg-yellow-400 text-4xl shadow-[10px_10px_0_#000] hover:shadow-[15px_15px_0_#000]">
+                INICIAR COMBATE
+            </button>
+            <p class="mt-8 text-xs font-bold uppercase opacity-60 tracking-[0.2em] text-black">Toca para provar o teu valor</p>
+        </div>
+
+        <!-- TELA DE JOGO -->
+        <div id="screen-game" class="hidden flex-col h-full">
+            <div class="score-box">
+                <button onclick="changeScreen('menu')" class="btn-nav">MENU</button>
+                <div class="flex gap-4">
+                    <span class="text-cyan-400">CPU: <span id="c-score">0</span></span>
+                    <span class="text-yellow-400">TU: <span id="p-score">0</span></span>
+                </div>
+            </div>
+
+            <div class="header-banner">
+                <div id="status-text" class="text-2xl font-black italic">RD <span id="round">1</span> - ESCOLHE!</div>
+            </div>
+
+            <div class="arena">
+                <div id="p-hand" class="hand-box">👊</div>
+                <div class="text-4xl font-black border-4 border-black bg-white p-2 shadow-[5px_5px_0_#000] z-20">VS</div>
+                <div id="c-hand" class="hand-box cpu-hand">👊</div>
+            </div>
+
+            <div class="controls">
+                <button onclick="play('rock')" class="btn-choice">👊</button>
+                <button onclick="play('paper')" class="btn-choice">✋</button>
+                <button onclick="play('scissors')" class="btn-choice">✌️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pScore = 0, cScore = 0, round = 1, isBusy = false;
+        const choices = { rock: '👊', paper: '✋', scissors: '✌️' };
+        let audio;
+
+        function playSound(freq, type = 'square', dur = 0.1) {
+            if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+            if(audio.state === 'suspended') audio.resume();
+            const o = audio.createOscillator();
+            const g = audio.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(freq, audio.currentTime);
+            g.gain.setValueAtTime(0.1, audio.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + dur);
+            o.connect(g); g.connect(audio.destination);
+            o.start(); o.stop(audio.currentTime + dur);
+        }
+
+        function changeScreen(target) {
+            const swipe = document.getElementById('swipe');
+            playSound(440, 'sawtooth', 0.2);
+            swipe.classList.add('active');
+            
+            setTimeout(() => {
+                document.getElementById('screen-menu').classList.toggle('hidden', target === 'game');
+                document.getElementById('screen-game').classList.toggle('hidden', target === 'menu');
+                document.getElementById('screen-game').style.display = target === 'game' ? 'flex' : 'none';
+                if(target === 'game') resetGame();
+            }, 300);
+
+            setTimeout(() => {
+                swipe.style.transition = 'none';
+                swipe.classList.remove('active');
+                setTimeout(() => swipe.style.transition = '', 50);
+            }, 700);
+        }
+
+        function play(playerMove) {
+            if(isBusy) return;
+            isBusy = true;
+            playSound(220);
+
+            const pHand = document.getElementById('p-hand');
+            const cHand = document.getElementById('c-hand');
+            const status = document.getElementById('status-text');
+
+            pHand.innerText = cHand.innerText = '👊';
+            pHand.classList.add('shaking');
+            cHand.classList.add('shaking');
+
+            let steps = 0;
+            const words = ["JAN...", "KEN...", "PÔ!"];
+            const interval = setInterval(() => {
+                status.innerText = words[steps];
+                playSound(200 + (steps * 100));
+                steps++;
+                if(steps === 3) clearInterval(interval);
+            }, 300);
+
+            setTimeout(() => {
+                pHand.classList.remove('shaking');
+                cHand.classList.remove('shaking');
+                
+                const cpuMove = ['rock', 'paper', 'scissors'][Math.floor(Math.random()*3)];
+                pHand.innerText = choices[playerMove];
+                cHand.innerText = choices[cpuMove];
+
+                document.getElementById('main-canvas').classList.add('impact');
+                setTimeout(() => document.getElementById('main-canvas').classList.remove('impact'), 200);
+
+                if(playerMove === cpuMove) {
+                    status.innerText = "EMPATE!";
+                    playSound(300, 'sine', 0.2);
+                } else if(
+                    (playerMove === 'rock' && cpuMove === 'scissors') ||
+                    (playerMove === 'paper' && cpuMove === 'rock') ||
+                    (playerMove === 'scissors' && cpuMove === 'paper')
+                ) {
+                    pScore++;
+                    status.innerText = "VITÓRIA!";
+                    playSound(600, 'triangle', 0.4);
+                } else {
+                    cScore++;
+                    status.innerText = "DERROTA!";
+                    playSound(100, 'sawtooth', 0.4);
+                }
+
+                document.getElementById('p-score').innerText = pScore;
+                document.getElementById('c-score').innerText = cScore;
+                round++;
+                
+                setTimeout(() => {
+                    isBusy = false;
+                    setTimeout(() => {
+                        if(!isBusy) status.innerText = `RD ${round} - ESCOLHE!`;
+                    }, 1000);
+                }, 500);
+            }, 1000);
+        }
+
+        function resetGame() {
+            pScore = 0; cScore = 0; round = 1;
+            document.getElementById('p-score').innerText = '0';
+            document.getElementById('c-score').innerText = '0';
+            document.getElementById('status-text').innerText = "RD 1 - ESCOLHE!";
+            document.getElementById('p-hand').innerText = '👊';
+            document.getElementById('c-hand').innerText = '👊';
+        }
+    </script>
+</body>
+</html>

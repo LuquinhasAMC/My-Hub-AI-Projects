@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuizMaster CARTOON ULTRA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka+One&display=swap');
+
+        :root {
+            --k-purple: #46178f;
+            --k-purple-dark: #250850;
+            --k-yellow: #facc15;
+            --k-yellow-dark: #ca8a04;
+            --k-pink: #eb008b;
+            --k-blue: #1368ce;
+            --k-green: #26890c;
+        }
+
+        html, body {
+            background-color: var(--k-purple-dark) !important;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Fredoka One', cursive;
+            background: radial-gradient(circle at center, var(--k-purple) 0%, var(--k-purple-dark) 100%) !important;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .font-game { font-family: 'Bungee', cursive; }
+
+        /* Botões Cartoon 3D */
+        .btn-cartoon {
+            position: relative;
+            background: white;
+            color: #333;
+            padding: 1rem 1.5rem;
+            border-radius: 1.2rem;
+            border: none;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 768px) {
+            .btn-cartoon { padding: 1.2rem 2rem; font-size: 1rem; box-shadow: 0 8px 0 rgba(0,0,0,0.3); }
+        }
+
+        .btn-cartoon:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+        }
+
+        .btn-yellow { background: var(--k-yellow); color: var(--k-purple-dark); box-shadow: 0 6px 0 var(--k-yellow-dark); }
+        .btn-blue { background: var(--k-blue); color: white; box-shadow: 0 6px 0 #0b4a94; }
+        .btn-pink { background: var(--k-pink); color: white; box-shadow: 0 6px 0 #9c005c; }
+        .btn-cyan { background: #06b6d4; color: white; box-shadow: 0 6px 0 #0891b2; }
+
+        /* Caixa de Pergunta */
+        .question-box {
+            background: white;
+            color: var(--k-purple-dark);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            width: 100%;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* Cartões de Resposta */
+        .answer-card {
+            position: relative;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+            color: white;
+            text-align: left;
+            width: 100%;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .card-0 { background: #e21b3c; }
+        .card-1 { background: #1368ce; }
+        .card-2 { background: #d89e00; }
+        .card-3 { background: #26890c; }
+
+        .opt-svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+            fill: white;
+        }
+
+        /* Laboratório */
+        .input-cartoon {
+            background: #ffffff;
+            border: 3px solid #e5e7eb;
+            border-radius: 0.8rem;
+            padding: 0.6rem 0.8rem;
+            color: #1f2937;
+            font-weight: 700;
+            width: 100%;
+        }
+
+        /* Ícones Flutuantes */
+        .float-icon {
+            position: absolute;
+            opacity: 0.1;
+            z-index: -1;
+            animation: float 10s infinite alternate ease-in-out;
+            fill: white;
+            pointer-events: none;
+        }
+        @keyframes float {
+            from { transform: translate(0,0) rotate(0deg); }
+            to { transform: translate(15px, 30px) rotate(15deg); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 1rem;
+        }
+
+        .time-selected {
+            background-color: var(--k-yellow) !important;
+            color: var(--k-purple-dark) !important;
+            border-color: var(--k-purple-dark) !important;
+            transform: scale(1.05);
+            box-shadow: 0 2px 0 var(--k-yellow-dark) !important;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .timer-warning {
+            animation: pulse-red 0.5s infinite;
+            color: #ef4444 !important;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Overlay de bloqueio durante animações */
+        #input-blocker {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-icons" class="fixed inset-0 pointer-events-none"></div>
+    <div id="input-blocker"></div>
+
+    <!-- MODAL DE IMPORTAÇÃO -->
+    <div id="import-modal" class="modal-overlay fixed inset-0">
+        <div class="bg-white p-6 md:p-8 rounded-[2rem] w-full max-w-lg text-purple-900 shadow-2xl animate__animated animate__zoomIn">
+            <h3 class="font-game text-xl mb-4">IMPORTAR QUESTÕES</h3>
+            <textarea id="import-area" class="w-full h-40 input-cartoon mb-6 font-mono text-xs" placeholder='[{"q": "Pergunta", "options": ["A","B","C","D"], "correct": 0}]'></textarea>
+            <div class="flex gap-4">
+                <button onclick="closeImport(); playSound('click')" class="btn-cartoon flex-1 bg-gray-200">FECHAR</button>
+                <button onclick="executeImport(); playSound('click')" class="btn-cartoon btn-yellow flex-1">CARREGAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTAGEM -->
+    <div id="countdown-screen" class="fixed inset-0 z-[5000] hidden flex-col items-center justify-center bg-black/95">
+        <div id="cd-number" class="text-[10rem] md:text-[18rem] font-game text-white animate__animated">3</div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden sticky top-0 z-[50] w-full max-w-5xl mx-auto flex justify-between items-center p-4 bg-purple-900/80 backdrop-blur-md rounded-b-3xl border-b border-white/10 shadow-lg">
+        <div class="bg-black/40 px-4 py-1 rounded-full border border-white/10 flex items-center gap-2">
+            <span id="hud-current-q" class="text-xl font-game text-yellow-400">1</span>
+            <span class="opacity-30">/</span>
+            <span id="hud-total-q" class="text-xs font-game opacity-50">5</span>
+        </div>
+
+        <div id="timer-wrapper" class="bg-white text-purple-900 px-6 py-1 rounded-full shadow-[0_4px_0_#ddd] font-game text-xl md:text-2xl transition-all">
+            <span id="timer-val">20</span>
+        </div>
+
+        <div id="hud-score-container" class="bg-black/40 px-4 py-1 rounded-full border border-white/10 text-right">
+            <span id="hud-score" class="text-xl font-game text-cyan-400">0</span>
+        </div>
+    </div>
+
+    <main class="main-content">
+        
+        <!-- 1. HOME -->
+        <div id="screen-home" class="flex-grow flex flex-col items-center justify-center text-center py-10 animate__animated animate__fadeIn">
+            <h1 class="text-5xl md:text-8xl font-game mb-4 drop-shadow-[0_8px_0_rgba(0,0,0,0.4)] animate__animated animate__bounceInDown">
+                QUIZ<span class="text-yellow-400">MASTER</span>
+            </h1>
+            <p class="text-sm md:text-xl font-bold opacity-70 mb-12 tracking-widest uppercase italic animate__animated animate__fadeIn animate__delay-1s">Cartoon Edition</p>
+            
+            <div class="flex flex-col gap-5 w-full max-w-xs animate__animated animate__fadeInUp animate__delay-1s">
+                <button onclick="nav('screen-modes'); playSound('click')" class="btn-cartoon btn-yellow text-xl py-5">JOGAR</button>
+                <button onclick="nav('screen-editor'); playSound('click')" class="btn-cartoon btn-blue text-lg gap-3">LABORATÓRIO</button>
+            </div>
+        </div>
+
+        <!-- 2. MODOS -->
+        <div id="screen-modes" class="hidden flex-grow flex flex-col items-center justify-center py-10 animate__animated animate__fadeIn">
+            <h2 class="text-3xl font-game mb-10">ESCOLHE O MODO</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
+                <div onclick="initGameSequence('normal'); playSound('click')" class="btn-cartoon btn-pink flex-col p-8 md:p-12 cursor-pointer hover:scale-105 transition-transform">
+                    <span class="font-game text-xl">MODO NORMAL</span>
+                    <p class="text-xs normal-case opacity-80 mt-2">Competição com Tempo</p>
+                </div>
+                <div onclick="initGameSequence('assisted'); playSound('click')" class="btn-cartoon btn-blue flex-col p-8 md:p-12 cursor-pointer hover:scale-105 transition-transform">
+                    <span class="font-game text-xl">MODO ASSISTIDO</span>
+                    <p class="text-xs normal-case opacity-80 mt-2">Estudo com Tempo Global</p>
+                </div>
+            </div>
+            <button onclick="nav('screen-home'); playSound('click')" class="mt-10 font-bold uppercase underline text-sm opacity-60">Voltar</button>
+        </div>
+
+        <!-- 3. LABORATÓRIO -->
+        <div id="screen-editor" class="hidden flex-grow animate__animated animate__fadeIn">
+            <div class="flex flex-col gap-6 py-6">
+                <header class="flex flex-wrap justify-between items-center gap-4 border-b-2 border-white/10 pb-6">
+                    <h2 class="font-game text-2xl text-white">LABORATÓRIO</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openImport(); playSound('click')" class="btn-cartoon btn-cyan text-[10px] py-2">IMPORTAR</button>
+                        <button onclick="exportData(); playSound('click')" class="btn-cartoon btn-yellow text-[10px] py-2">EXPORTAR</button>
+                        <button onclick="nav('screen-home'); playSound('click')" class="btn-cartoon btn-pink text-[10px] py-2">SAIR</button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-3xl p-6 text-purple-900 shadow-xl h-fit">
+                        <div class="mb-6 p-4 bg-purple-50 rounded-2xl border-2 border-dashed border-purple-200">
+                            <h3 class="font-game text-[10px] mb-3 text-center">TEMPO LIMITE POR QUESTÃO</h3>
+                            <div class="flex flex-wrap justify-center gap-2" id="time-picker">
+                                <button onclick="setGlobalTime(10); playSound('click')" class="btn-cartoon bg-white text-[10px] py-1 px-3 border">10s</button>
+                                <button onclick="setGlobalTime(15); playSound('click')" class="btn-cartoon bg-white text-[10px] py-1 px-3 border">15s</button>
+                                <button onclick="setGlobalTime(20); playSound('click')" class="btn-cartoon bg-white text-[10px] py-1 px-3 border">20s</button>
+                                <button onclick="setGlobalTime(25); playSound('click')" class="btn-cartoon bg-white text-[10px] py-1 px-3 border">25s</button>
+                                <button onclick="setGlobalTime(30); playSound('click')" class="btn-cartoon bg-white text-[10px] py-1 px-3 border">30s</button>
+                            </div>
+                        </div>
+
+                        <h3 class="font-game text-lg mb-4">NOVA QUESTÃO</h3>
+                        <div class="space-y-3">
+                            <textarea id="in-q" class="input-cartoon h-20" placeholder="Qual a pergunta?"></textarea>
+                            <input id="in-o0" class="input-cartoon" placeholder="Opção A">
+                            <input id="in-o1" class="input-cartoon" placeholder="Opção B">
+                            <input id="in-o2" class="input-cartoon" placeholder="Opção C">
+                            <input id="in-o3" class="input-cartoon" placeholder="Opção D">
+                            
+                            <div class="flex justify-center gap-2 py-2" id="correct-picker">
+                                <button onclick="setCorrectIdx(0); playSound('click')" class="w-10 h-10 rounded-xl bg-gray-100 font-game border-2 border-transparent">A</button>
+                                <button onclick="setCorrectIdx(1); playSound('click')" class="w-10 h-10 rounded-xl bg-gray-100 font-game border-2 border-transparent">B</button>
+                                <button onclick="setCorrectIdx(2); playSound('click')" class="w-10 h-10 rounded-xl bg-gray-100 font-game border-2 border-transparent">C</button>
+                                <button onclick="setCorrectIdx(3); playSound('click')" class="w-10 h-10 rounded-xl bg-gray-100 font-game border-2 border-transparent">D</button>
+                            </div>
+                            <button onclick="saveQuestion(); playSound('click')" class="btn-cartoon btn-yellow w-full py-4 text-lg">GUARDAR</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/20 p-6 rounded-3xl h-fit">
+                        <h3 class="font-game text-sm text-cyan-400 mb-4 uppercase">QUESTÕES (<span id="q-count">0</span>)</h3>
+                        <div id="q-list-container" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. JOGO -->
+        <div id="screen-game" class="hidden flex-grow flex flex-col py-6">
+            <div id="q-anim-box" class="question-box animate__animated">
+                <h2 id="q-display" class="text-xl md:text-3xl font-bold">...</h2>
+            </div>
+
+            <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <button onclick="checkAnswer(0)" id="btn-opt-0" class="answer-card card-0 animate__animated">
+                    <svg class="opt-svg" viewBox="0 0 24 24"><path d="M12 2l10 18H2L12 2z"/></svg>
+                    <span id="opt-0-txt" class="text-lg font-bold">...</span>
+                </button>
+                <button onclick="checkAnswer(1)" id="btn-opt-1" class="answer-card card-1 animate__animated">
+                    <svg class="opt-svg" viewBox="0 0 24 24"><path d="M12 2l10 10-10 10L2 12 12 2z"/></svg>
+                    <span id="opt-1-txt" class="text-lg font-bold">...</span>
+                </button>
+                <button onclick="checkAnswer(2)" id="btn-opt-2" class="answer-card card-2 animate__animated">
+                    <svg class="opt-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                    <span id="opt-2-txt" class="text-lg font-bold">...</span>
+                </button>
+                <button onclick="checkAnswer(3)" id="btn-opt-3" class="answer-card card-3 animate__animated">
+                    <svg class="opt-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/></svg>
+                    <span id="opt-3-txt" class="text-lg font-bold">...</span>
+                </button>
+            </div>
+            
+            <div id="assisted-hint" class="hidden text-center mt-6 p-4 bg-yellow-400/10 rounded-2xl border border-yellow-400/20">
+                <p class="font-game text-yellow-400 animate__pulse animate__infinite">Modo Assistido: Aguarda a revelação!</p>
+            </div>
+        </div>
+
+        <!-- 5. FEEDBACK -->
+        <div id="screen-feedback" class="hidden fixed inset-0 z-[6000] flex items-center justify-center p-4">
+            <div id="fb-background" class="absolute inset-0"></div>
+            <div class="relative z-10 w-full max-w-lg text-center">
+                <h2 id="fb-title" class="text-6xl md:text-8xl font-game mb-4 drop-shadow-xl italic animate__animated animate__bounceIn">CERTO!</h2>
+                <div class="bg-white rounded-3xl p-6 md:p-10 mb-8 shadow-2xl mx-auto animate__animated animate__zoomIn">
+                    <p id="fb-subtitle" class="text-xl md:text-2xl font-bold text-purple-900">...</p>
+                </div>
+                <button onclick="proceedToNext(); playSound('click')" class="btn-cartoon btn-yellow px-12 py-5 text-2xl w-full md:w-auto">SEGUINTE</button>
+            </div>
+        </div>
+
+        <!-- 6. RESULTADOS -->
+        <div id="screen-result" class="hidden flex-grow flex flex-col items-center justify-center py-10 animate__animated animate__fadeIn">
+            <h2 class="text-4xl md:text-6xl font-game mb-8 text-center uppercase">FIM DE JOGO!</h2>
+            <div id="result-container" class="bg-white rounded-3xl p-8 md:p-12 w-full max-w-lg text-purple-900 shadow-2xl animate__animated animate__jackInTheBox">
+                <div id="score-stats" class="text-center">
+                    <p class="font-game text-sm opacity-50 uppercase">Pontuação Final</p>
+                    <p id="res-score-val" class="text-7xl md:text-8xl font-game my-4 text-purple-600">0</p>
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <div class="bg-green-100 p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold uppercase">Acertos</p>
+                            <p id="res-hits" class="text-2xl font-game text-green-600">0</p>
+                        </div>
+                        <div class="bg-red-100 p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold uppercase">Erros</p>
+                            <p id="res-miss" class="text-2xl font-game text-red-600">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="assisted-stats" class="hidden text-center">
+                    <h3 class="text-3xl font-game mb-4 text-purple-600">REVISÃO CONCLUÍDA!</h3>
+                    <p class="font-bold opacity-60">Questões revisadas com sucesso.</p>
+                </div>
+            </div>
+            <button onclick="nav('screen-home'); playSound('click')" class="btn-cartoon btn-yellow mt-10 px-12 text-xl">VOLTAR</button>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Web Audio API Engine ---
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'tick') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.02, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'win') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.5);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.8);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            }
+        }
+
+        let questions = [
+            { q: "Qual destes planetas é conhecido como o Planeta Vermelho?", options: ["Vénus", "Marte", "Júpiter", "Saturno"], correct: 1 },
+            { q: "Quem pintou a 'Mona Lisa'?", options: ["Van Gogh", "Picasso", "Da Vinci", "Dalí"], correct: 2 },
+            { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial Ártico", "Pacífico"], correct: 3 }
+        ];
+
+        let state = {
+            mode: 'normal',
+            current: 0,
+            score: 0,
+            hits: 0,
+            miss: 0,
+            limitTime: 20,
+            timeLeft: 20,
+            timer: null,
+            editingIdx: 0
+        };
+
+        function nav(id) {
+            ['screen-home', 'screen-modes', 'screen-editor', 'screen-game', 'screen-feedback', 'screen-result'].forEach(s => {
+                const el = document.getElementById(s);
+                if(el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(id);
+            if(target) target.classList.remove('hidden');
+            
+            document.getElementById('hud').classList.toggle('hidden', id !== 'screen-game');
+            
+            if (id === 'screen-editor') {
+                updateEditorList();
+                setGlobalTime(state.limitTime);
+            }
+            
+            if (id !== 'screen-game') {
+                clearInterval(state.timer);
+            }
+        }
+
+        function setGlobalTime(t) {
+            state.limitTime = parseInt(t);
+            document.querySelectorAll('#time-picker button').forEach(btn => {
+                const val = parseInt(btn.innerText);
+                if(val === state.limitTime) btn.classList.add('time-selected');
+                else btn.classList.remove('time-selected');
+            });
+        }
+
+        function initGameSequence(mode) {
+            if(questions.length === 0) return;
+            state.mode = mode;
+            nav('none');
+            const overlay = document.getElementById('countdown-screen');
+            overlay.classList.remove('hidden');
+            overlay.style.display = 'flex';
+            let count = 3;
+            const num = document.getElementById('cd-number');
+            
+            const runTick = () => {
+                num.innerText = count;
+                num.className = "text-[10rem] md:text-[18rem] font-game text-white animate__animated animate__zoomIn";
+                playSound('tick');
+                setTimeout(() => num.classList.remove('animate__zoomIn'), 700);
+            };
+
+            runTick();
+            const interval = setInterval(() => {
+                count--;
+                if(count > 0) runTick();
+                else {
+                    clearInterval(interval);
+                    overlay.classList.add('hidden');
+                    overlay.style.display = 'none';
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            state.current = 0; state.score = 0; state.hits = 0; state.miss = 0;
+            const isAssisted = (state.mode === 'assisted');
+            document.getElementById('hud-score-container').style.visibility = isAssisted ? 'hidden' : 'visible';
+            document.getElementById('timer-wrapper').style.visibility = 'visible';
+            document.getElementById('assisted-hint').classList.toggle('hidden', !isAssisted);
+
+            const btns = document.querySelectorAll('#options-grid .answer-card');
+            btns.forEach((btn, i) => {
+                btn.onclick = isAssisted ? null : () => checkAnswer(i);
+                btn.style.cursor = isAssisted ? 'default' : 'pointer';
+            });
+
+            nav('screen-game');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questions[state.current];
+            document.getElementById('hud-current-q').innerText = state.current + 1;
+            document.getElementById('hud-total-q').innerText = questions.length;
+            document.getElementById('hud-score').innerText = state.score;
+            document.getElementById('q-display').innerText = q.q;
+            
+            // Animação da pergunta
+            const qBox = document.getElementById('q-anim-box');
+            qBox.classList.remove('animate__fadeInDown');
+            void qBox.offsetWidth;
+            qBox.classList.add('animate__fadeInDown');
+
+            q.options.forEach((opt, i) => {
+                const btn = document.getElementById(`btn-opt-${i}`);
+                document.getElementById(`opt-${i}-txt`).innerText = opt;
+                
+                // Animação sequencial dos botões
+                btn.classList.remove('animate__fadeInUp');
+                btn.style.opacity = "0";
+                setTimeout(() => {
+                    btn.style.opacity = "1";
+                    btn.classList.add('animate__fadeInUp');
+                }, 100 * i);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(state.timer);
+            state.timeLeft = state.limitTime;
+            const timerWrap = document.getElementById('timer-wrapper');
+            const timerVal = document.getElementById('timer-val');
+            timerVal.innerText = state.timeLeft;
+            timerWrap.classList.remove('timer-warning');
+            
+            state.timer = setInterval(() => {
+                state.timeLeft--;
+                timerVal.innerText = state.timeLeft;
+                
+                if(state.timeLeft <= 5) {
+                    timerWrap.classList.add('timer-warning');
+                    playSound('tick');
+                }
+
+                if(state.timeLeft <= 0) {
+                    clearInterval(state.timer);
+                    checkAnswer(state.mode === 'assisted' ? questions[state.current].correct : -1);
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(choice) {
+            clearInterval(state.timer);
+            const q = questions[state.current];
+            const isCorrect = choice === q.correct;
+            
+            // Bloquear inputs
+            document.getElementById('input-blocker').style.display = 'block';
+
+            // Efeito visual na escolha
+            if(choice !== -1) {
+                const selectedBtn = document.getElementById(`btn-opt-${choice}`);
+                selectedBtn.classList.add('animate__pulse');
+            }
+
+            setTimeout(() => {
+                const fb = document.getElementById('screen-feedback');
+                fb.classList.remove('hidden');
+                document.getElementById('input-blocker').style.display = 'none';
+                
+                const bg = document.getElementById('fb-background');
+                const title = document.getElementById('fb-title');
+                const sub = document.getElementById('fb-subtitle');
+
+                if(isCorrect) {
+                    state.hits++;
+                    playSound('correct');
+                    if(state.mode === 'normal') state.score += (state.timeLeft * 10) + 100;
+                    bg.className = "absolute inset-0 bg-green-500 animate__animated animate__fadeIn";
+                    title.innerText = (state.mode === 'assisted') ? "REVELADO!" : "CERTO!";
+                    sub.innerText = q.options[q.correct];
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#facc15', '#ffffff', '#26890c'] });
+                } else {
+                    state.miss++;
+                    playSound('wrong');
+                    bg.className = "absolute inset-0 bg-red-600 animate__animated animate__fadeIn";
+                    title.innerText = (choice === -1) ? "TEMPO!" : "ERRADO!";
+                    sub.innerText = `Resposta: ${q.options[q.correct]}`;
+                }
+            }, 500);
+        }
+
+        function proceedToNext() {
+            state.current++;
+            document.getElementById('screen-feedback').classList.add('hidden');
+            if(state.current < questions.length) loadQuestion();
+            else showResults();
+        }
+
+        function showResults() {
+            nav('screen-result');
+            playSound('win');
+            const isAssisted = (state.mode === 'assisted');
+            document.getElementById('score-stats').classList.toggle('hidden', isAssisted);
+            document.getElementById('assisted-stats').classList.toggle('hidden', !isAssisted);
+            if(!isAssisted) {
+                document.getElementById('res-score-val').innerText = state.score;
+                document.getElementById('res-hits').innerText = state.hits;
+                document.getElementById('res-miss').innerText = state.miss;
+                if(state.hits === questions.length) {
+                    setTimeout(() => confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } }), 500);
+                }
+            }
+        }
+
+        // --- Editor ---
+        function setCorrectIdx(i) {
+            state.editingIdx = i;
+            document.querySelectorAll('#correct-picker button').forEach((btn, idx) => {
+                btn.className = idx === i ? "w-10 h-10 rounded-xl bg-yellow-400 font-game border-2 border-purple-900 scale-110 transition-transform" : "w-10 h-10 rounded-xl bg-gray-100 font-game border-2 border-transparent transition-transform";
+            });
+        }
+
+        function saveQuestion() {
+            const qTxt = document.getElementById('in-q').value;
+            const opts = [
+                document.getElementById('in-o0').value,
+                document.getElementById('in-o1').value,
+                document.getElementById('in-o2').value,
+                document.getElementById('in-o3').value
+            ];
+            if(qTxt && opts.every(o => o.trim() !== "")) {
+                questions.push({ q: qTxt, options: opts, correct: state.editingIdx });
+                document.getElementById('in-q').value = "";
+                opts.forEach((_, i) => document.getElementById(`in-o${i}`).value = "");
+                updateEditorList();
+            }
+        }
+
+        function updateEditorList() {
+            const container = document.getElementById('q-list-container');
+            document.getElementById('q-count').innerText = questions.length;
+            container.innerHTML = questions.map((q, i) => `
+                <div class="p-3 bg-white/10 rounded-xl flex justify-between items-center text-xs animate__animated animate__fadeInLeft" style="animation-delay: ${i * 0.05}s">
+                    <span class="truncate pr-2"><b>${i+1}.</b> ${q.q}</span>
+                    <button onclick="questions.splice(${i},1);updateEditorList();playSound('click')" class="text-pink-400 font-bold hover:text-white shrink-0">REMOVER</button>
+                </div>
+            `).join('');
+        }
+
+        function exportData() {
+            const data = { questions, limitTime: state.limitTime };
+            const json = JSON.stringify(data);
+            const el = document.createElement('textarea');
+            el.value = json;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            // Feedback simples sem alert
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "COPIADO!";
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }
+
+        function openImport() { document.getElementById('import-modal').style.display = 'flex'; }
+        function closeImport() { document.getElementById('import-modal').style.display = 'none'; }
+
+        function executeImport() {
+            const val = document.getElementById('import-area').value;
+            try {
+                const parsed = JSON.parse(val);
+                if (Array.isArray(parsed)) questions = parsed;
+                else if (parsed.questions) {
+                    questions = parsed.questions;
+                    if(parsed.limitTime) setGlobalTime(parsed.limitTime);
+                }
+                updateEditorList();
+                closeImport();
+            } catch (e) { alert("Erro ao importar JSON."); }
+        }
+
+        function initBG() {
+            const container = document.getElementById('bg-icons');
+            const paths = ["M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z", "M12 2l10 18H2L12 2z", "M12 2a10 10 0 1010 10A10 10 0 0012 2z"];
+            for(let i=0; i<15; i++) {
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("viewBox", "0 0 24 24");
+                svg.classList.add("float-icon");
+                svg.style.width = (Math.random() * 30 + 20) + "px";
+                svg.style.left = Math.random() * 90 + "vw";
+                svg.style.top = Math.random() * 90 + "vh";
+                svg.style.animationDuration = (Math.random() * 5 + 8) + "s";
+                svg.style.animationDelay = (Math.random() * 5) + "s";
+                svg.innerHTML = `<path d="${paths[i % 3]}"/>`;
+                container.appendChild(svg);
+            }
+        }
+
+        window.onload = () => { 
+            initBG(); 
+            setCorrectIdx(0);
+            setGlobalTime(20);
+        };
+    </script>
+</body>
+</html>

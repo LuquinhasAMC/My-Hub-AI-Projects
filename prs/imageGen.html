@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal AI Studio | zImage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% -10%, #1e1b4b 0%, #050505 80%);
+        }
+
+        .glass-ui {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            padding: 10px 20px;
+            min-height: 0;
+            position: relative;
+        }
+
+        footer {
+            height: auto;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px 20px 20px;
+            flex-shrink: 0;
+            z-index: 60;
+        }
+
+        .view-section {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
+
+        #displayArea {
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #displayArea.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        #resultArea {
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 0;
+        }
+
+        #mainImage {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 0 60px -15px rgba(99, 102, 241, 0.25);
+            background: rgba(255,255,255,0.02);
+        }
+
+        #toolsPopover {
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 0;
+            width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        #toolsPopover.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .settings-drawer {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 300px;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        .settings-drawer.open {
+            transform: translateX(0);
+        }
+
+        .loader-minimal {
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #inputWrapper {
+            width: 100%;
+            max-width: 540px;
+            position: relative;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .fade-out { 
+            opacity: 0; 
+            transform: translateY(-15px);
+            pointer-events: none; 
+            position: absolute !important; 
+        }
+
+        .active-btn {
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .prompt-container {
+            border-radius: 20px;
+            padding: 4px 6px;
+            transition: all 0.3s ease;
+        }
+
+        .is-busy {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            width: 100%;
+            overflow-y: auto;
+            padding: 10px 20px 100px 20px;
+        }
+
+        .gallery-card {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        #galleryModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #modalContent {
+            width: 100%;
+            max-width: 900px;
+            height: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .filter-btn {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 6px 16px;
+            border-radius: 99px;
+            color: rgba(255,255,255,0.4);
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .error-ring {
+            border: 1px solid rgba(239, 68, 68, 0.5) !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Animação suave para as notificações */
+        .notification-fade {
+            animation: notificationIn 0.3s ease forwards, notificationOut 0.3s ease forwards 2.7s;
+        }
+
+        @keyframes notificationIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes notificationOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body id="appBody" onclick="closePopovers()">
+
+    <div id="notification-container" class="fixed bottom-32 left-1/2 -translate-x-1/2 z-[110] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Modal de Galeria -->
+    <div id="galleryModal" onclick="closeModal(event)">
+        <button onclick="closeModal(null)" class="absolute top-6 right-6 w-10 h-10 glass-ui rounded-full flex items-center justify-center text-white/60 hover:text-white transition z-30">
+            <i class="fas fa-times"></i>
+        </button>
+        <div id="modalContent" onclick="event.stopPropagation()">
+            <div class="flex-1 w-full min-h-0 flex items-center justify-center">
+                <img id="modalImg" src="" class="w-full h-full object-contain rounded-xl shadow-2xl hidden">
+                <div id="modalTextOnly" class="hidden text-center p-12 glass-ui rounded-2xl border-white/10 max-w-lg">
+                    <i class="fas fa-quote-left text-indigo-400/30 text-3xl mb-6"></i>
+                    <p id="modalPromptFull" class="text-xl font-light leading-relaxed"></p>
+                </div>
+            </div>
+            <div class="glass-ui p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 border-white/10">
+                <div class="flex-1">
+                    <p id="modalPromptSubtitle" class="text-xs text-white/80 leading-relaxed italic mb-1"></p>
+                    <p id="modalMeta" class="text-[9px] uppercase tracking-widest text-white/30"></p>
+                </div>
+                <div class="flex gap-3 shrink-0">
+                    <button id="modalDownload" class="px-6 py-2.5 glass-ui rounded-full text-[10px] uppercase font-bold tracking-widest hover:bg-white hover:text-black transition">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                    <button id="modalDelete" class="w-10 h-10 glass-ui rounded-full flex items-center justify-center text-red-400/60 hover:bg-red-500 hover:text-white transition">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                </svg>
+            </div>
+            <span class="font-bold tracking-[0.15em] text-[10px] uppercase opacity-70">Studio Zen</span>
+        </div>
+        
+        <nav class="flex items-center gap-4 glass-ui px-4 py-1.5 rounded-full border-white/5">
+            <button onclick="switchView('creation')" id="nav-creation" class="text-[10px] font-bold uppercase tracking-widest text-white">Criar</button>
+            <div class="w-[1px] h-3 bg-white/10"></div>
+            <button onclick="switchView('gallery')" id="nav-gallery" class="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition">Galeria</button>
+        </nav>
+
+        <button onclick="toggleSettings()" class="w-9 h-9 glass-ui rounded-xl flex items-center justify-center hover:bg-white hover:text-black transition-all group">
+            <i class="fas fa-sliders-h text-[10px] group-hover:rotate-90 transition-transform"></i>
+        </button>
+    </header>
+
+    <aside id="settingsDrawer" class="glass-ui settings-drawer p-8 flex flex-col gap-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-[9px] font-bold uppercase tracking-[0.2em] opacity-40">Ajustes</h2>
+            <button onclick="toggleSettings()" class="text-white/40 hover:text-white transition">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-6 overflow-y-auto no-scrollbar">
+            <div>
+                <label class="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-3 block">Chave API Pollinations</label>
+                <div class="relative">
+                    <input type="password" id="apiKeyInput" 
+                        class="w-full glass-ui rounded-lg p-2.5 text-[10px] outline-none border-white/5 focus:border-white/30 transition" 
+                        placeholder="Insira sua chave sk_..."
+                        onchange="saveApiKey(this.value)">
+                </div>
+                <div class="mt-2 flex flex-col gap-1">
+                    <a href="https://enter.pollinations.ai" target="_blank" class="text-[8px] text-indigo-400 hover:text-indigo-300 transition-colors uppercase font-bold tracking-widest">
+                        <i class="fas fa-external-link-alt mr-1"></i> Obter sua chave aqui
+                    </a>
+                    <p class="text-[7px] text-white/20 leading-relaxed">Sua chave é salva apenas localmente no seu navegador para sua segurança.</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-3 block">Formato</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setRatio('1:1', this)" class="ratio-btn py-2 text-[9px] rounded-lg glass-ui border-white/10 active-btn">1:1</button>
+                    <button onclick="setRatio('16:9', this)" class="ratio-btn py-2 text-[9px] rounded-lg glass-ui border-white/10">16:9</button>
+                    <button onclick="setRatio('9:16', this)" class="ratio-btn py-2 text-[9px] rounded-lg glass-ui border-white/10">9:16</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-3 block">Semente (Seed)</label>
+                <div class="relative">
+                    <input type="number" id="seedInput" 
+                        class="w-full glass-ui rounded-lg p-2.5 text-[10px] outline-none border-white/5 focus:border-white/30 transition" 
+                        placeholder="Aleatória"
+                        oninput="updateStatusUI()">
+                    <button onclick="clearSeed()" class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-white/20 hover:text-white">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-3 block">Modelo</label>
+                <div class="grid grid-cols-1 gap-1.5">
+                    <button onclick="selectModel('z-image', this)" class="model-btn p-2.5 text-left text-[9px] glass-ui rounded-lg border-white/5 transition active-btn">Z-Image (Pro)</button>
+                    <button onclick="selectModel('flux', this)" class="model-btn p-2.5 text-left text-[9px] glass-ui rounded-lg border-white/5 transition">Flux (Quality)</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-3 block">Estética</label>
+                <div class="grid grid-cols-1 gap-1.5">
+                    <button onclick="selectStyle('Photorealistic', this)" class="style-btn p-2.5 text-left text-[9px] glass-ui rounded-lg border-white/5 transition">Fotorealista</button>
+                    <button onclick="selectStyle('Anime', this)" class="style-btn p-2.5 text-left text-[9px] glass-ui rounded-lg border-white/5 transition">Anime & Art</button>
+                    <button onclick="selectStyle('Cinematic', this)" class="style-btn p-2.5 text-left text-[9px] glass-ui rounded-lg border-white/5 transition">Cinematográfico</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main>
+        <section id="creation-section" class="view-section active">
+            <div id="welcomeMessage">
+                <h1 class="text-4xl md:text-5xl font-light tracking-tighter text-white mb-2">O que iremos criar?</h1>
+                <p class="text-[10px] uppercase tracking-[0.4em] text-indigo-400/50 font-medium">Imaginação sem limites</p>
+            </div>
+
+            <div id="displayArea" class="relative group">
+                <div id="loadingState" class="hidden flex flex-col items-center gap-4">
+                    <div class="loader-minimal"></div>
+                    <p class="text-[9px] uppercase tracking-[0.3em] text-white/30">Processando visão...</p>
+                </div>
+                
+                <div id="resultArea">
+                    <img id="mainImage" src="" alt="AI Art" crossorigin="anonymous">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 rounded-xl backdrop-blur-sm">
+                        <button onclick="downloadImage()" title="Download" class="w-10 h-10 glass-ui rounded-full flex items-center justify-center hover:bg-white hover:text-black transition transform hover:scale-105">
+                            <i class="fas fa-download text-xs"></i>
+                        </button>
+                        <button onclick="copyLink()" title="Link" class="w-10 h-10 glass-ui rounded-full flex items-center justify-center hover:bg-white hover:text-black transition transform hover:scale-105">
+                            <i class="fas fa-link text-xs"></i>
+                        </button>
+                        <button onclick="lockCurrentSeed()" title="Fixar Seed" class="w-10 h-10 glass-ui rounded-full flex items-center justify-center hover:bg-white hover:text-black transition transform hover:scale-105">
+                            <i class="fas fa-lock text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="gallery-section" class="view-section">
+            <div class="w-full max-w-5xl flex flex-col h-full">
+                <div class="flex flex-col md:flex-row md:items-end justify-between px-6 mb-4 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-light tracking-tight">Criações</h2>
+                        <p class="text-[9px] uppercase tracking-[0.2em] text-white/30">Histórico de ideias</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 glass-ui p-1 rounded-full border-white/5">
+                        <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Tudo</button>
+                        <button onclick="setFilter('image')" id="filter-image" class="filter-btn">Imagens</button>
+                        <button onclick="setFilter('prompt')" id="filter-prompt" class="filter-btn">Prompts</button>
+                    </div>
+
+                    <button onclick="clearFullGallery()" class="text-[9px] uppercase tracking-widest text-red-400/50 hover:text-red-400 transition hidden md:block">Limpar Tudo</button>
+                </div>
+                <div id="fullGalleryGrid" class="gallery-grid no-scrollbar"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="mainFooter">
+        <div id="inputWrapper">
+            <div id="toolsPopover" class="glass-ui rounded-2xl border-white/10 overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+                <button onclick="saveOnlyPrompt(); closePopovers();" class="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest text-white/70 hover:bg-white/5 hover:text-white transition flex items-center gap-3">
+                    <i class="fas fa-bookmark w-4"></i> Guardar Prompt
+                </button>
+                <div class="w-full h-[1px] bg-white/5"></div>
+                <button onclick="clearCreationSpace(); closePopovers();" class="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest text-red-400/70 hover:bg-white/5 hover:text-red-400 transition flex items-center gap-3">
+                    <i class="fas fa-broom w-4"></i> Limpar Espaço
+                </button>
+            </div>
+
+            <div id="promptContainer" class="glass-ui prompt-container flex items-center gap-1 shadow-xl border-white/5 focus-within:border-white/20 transition-all">
+                <button id="toolsBtn" onclick="toggleTools(event)" class="w-10 h-10 rounded-full flex items-center justify-center text-white/30 hover:text-white hover:bg-white/5 transition shrink-0">
+                    <i class="fas fa-plus text-xs"></i>
+                </button>
+
+                <input id="promptInput" type="text" 
+                    class="bg-transparent flex-1 text-xs py-2.5 px-2 outline-none border-none placeholder-white/10" 
+                    placeholder="Escreva aqui a sua ideia..."
+                    onkeydown="if(event.key === 'Enter') generateImage()">
+                
+                <button id="createBtn" onclick="generateImage()" class="bg-white text-black w-9 h-9 rounded-full flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all shrink-0">
+                    <i id="createBtnIcon" class="fas fa-arrow-up text-xs"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-center gap-5 mt-4 text-[8px] uppercase tracking-[0.2em] text-white/20">
+                <span id="statusRatio">1:1</span>
+                <span id="statusStyle">Livre</span>
+                <span id="statusModel">z-image</span>
+                <span id="statusSeed">Auto</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const BASE_IMAGE_URL = "https://gen.pollinations.ai/image/";
+
+        let currentRatio = "1:1";
+        let selectedStyle = "";
+        let selectedModel = "z-image";
+        let isGenerating = false;
+        let generationTimeout = null;
+        let currentFilter = 'all';
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+        
+        let savedCreations = JSON.parse(localStorage.getItem('zImage_creations') || '[]');
+        let storedApiKey = localStorage.getItem('zImage_apiKey') || '';
+        
+        const dom = {
+            mainImage: document.getElementById('mainImage'),
+            loadingState: document.getElementById('loadingState'),
+            resultArea: document.getElementById('resultArea'),
+            displayArea: document.getElementById('displayArea'),
+            welcomeMessage: document.getElementById('welcomeMessage'),
+            promptInput: document.getElementById('promptInput'),
+            seedInput: document.getElementById('seedInput'),
+            toolsPopover: document.getElementById('toolsPopover'),
+            apiKeyInput: document.getElementById('apiKeyInput'),
+            notificationContainer: document.getElementById('notification-container')
+        };
+
+        function saveApiKey(val) {
+            storedApiKey = val.trim();
+            localStorage.setItem('zImage_apiKey', storedApiKey);
+            dom.apiKeyInput.classList.remove('error-ring');
+            if(storedApiKey) showNotification("Chave API Salva");
+        }
+
+        function switchView(view) {
+            const creationSect = document.getElementById('creation-section');
+            const gallerySect = document.getElementById('gallery-section');
+            const footer = document.getElementById('mainFooter');
+            const navCreation = document.getElementById('nav-creation');
+            const navGallery = document.getElementById('nav-gallery');
+
+            if(view === 'gallery') {
+                creationSect.classList.remove('active');
+                gallerySect.classList.add('active');
+                footer.classList.add('hidden');
+                navGallery.classList.replace('text-white/40', 'text-white');
+                navCreation.classList.replace('text-white', 'text-white/40');
+                renderFullGallery();
+            } else {
+                gallerySect.classList.remove('active');
+                creationSect.classList.add('active');
+                footer.classList.remove('hidden');
+                navCreation.classList.replace('text-white/40', 'text-white');
+                navGallery.classList.replace('text-white', 'text-white/40');
+            }
+        }
+
+        function toggleTools(e) {
+            e.stopPropagation();
+            if(isGenerating) return;
+            dom.toolsPopover.classList.toggle('open');
+        }
+
+        function closePopovers() {
+            dom.toolsPopover.classList.remove('open');
+        }
+
+        function clearCreationSpace() {
+            dom.promptInput.value = '';
+            dom.displayArea.classList.remove('active');
+            dom.welcomeMessage.classList.remove('fade-out');
+            dom.mainImage.src = '';
+            showNotification("Espaço Limpo");
+        }
+
+        function saveOnlyPrompt() {
+            const prompt = dom.promptInput.value.trim();
+            if(!prompt) return;
+            
+            const newItem = {
+                id: Date.now(),
+                type: 'prompt',
+                prompt: prompt,
+                date: new Date().toISOString()
+            };
+            
+            savedCreations.unshift(newItem);
+            localStorage.setItem('zImage_creations', JSON.stringify(savedCreations));
+            showNotification("Prompt Guardado");
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsDrawer').classList.toggle('open');
+        }
+
+        function updateStatusUI() {
+            const seedVal = dom.seedInput.value;
+            document.getElementById('statusSeed').textContent = seedVal ? `Seed: ${seedVal}` : "Auto";
+            document.getElementById('statusRatio').textContent = currentRatio;
+            document.getElementById('statusStyle').textContent = selectedStyle || "Livre";
+            document.getElementById('statusModel').textContent = selectedModel;
+        }
+
+        function setRatio(ratio, btn) {
+            currentRatio = ratio;
+            document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active-btn'));
+            btn.classList.add('active-btn');
+            updateStatusUI();
+        }
+
+        function selectStyle(style, btn) {
+            if(selectedStyle === style) {
+                selectedStyle = "";
+                btn.classList.remove('active-btn');
+            } else {
+                selectedStyle = style;
+                document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active-btn'));
+                btn.classList.add('active-btn');
+            }
+            updateStatusUI();
+        }
+
+        function selectModel(model, btn) {
+            selectedModel = model;
+            document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active-btn'));
+            btn.classList.add('active-btn');
+            updateStatusUI();
+        }
+
+        function clearSeed() {
+            dom.seedInput.value = '';
+            updateStatusUI();
+        }
+
+        function setUIBusy(busy) {
+            isGenerating = busy;
+            const container = document.getElementById('promptContainer');
+            const input = dom.promptInput;
+            const createBtn = document.getElementById('createBtn');
+            const createBtnIcon = document.getElementById('createBtnIcon');
+            const toolsBtn = document.getElementById('toolsBtn');
+
+            if (busy) {
+                container.classList.add('is-busy');
+                input.disabled = true;
+                createBtn.disabled = true;
+                toolsBtn.disabled = true;
+                createBtnIcon.className = "fas fa-spinner fa-spin text-xs";
+            } else {
+                container.classList.remove('is-busy');
+                input.disabled = false;
+                createBtn.disabled = false;
+                toolsBtn.disabled = false;
+                createBtnIcon.className = "fas fa-arrow-up text-xs";
+                if(generationTimeout) clearTimeout(generationTimeout);
+            }
+        }
+
+        async function generateImage(isRetry = false) {
+            if (isGenerating && !isRetry) return;
+
+            if(!storedApiKey) {
+                showNotification("Configure sua Chave API primeiro");
+                toggleSettings();
+                dom.apiKeyInput.focus();
+                dom.apiKeyInput.classList.add('error-ring');
+                return;
+            }
+
+            const promptText = dom.promptInput.value.trim();
+            if(!promptText) return;
+
+            if(!isRetry) {
+                retryCount = 0;
+                setUIBusy(true);
+            }
+            
+            closePopovers();
+            
+            if(!isRetry) {
+                dom.resultArea.style.display = 'none';
+                dom.displayArea.classList.add('active');
+                dom.loadingState.classList.remove('hidden');
+                if(!dom.welcomeMessage.classList.contains('fade-out')) {
+                    dom.welcomeMessage.classList.add('fade-out');
+                }
+            }
+
+            let w = 1024, h = 1024;
+            if(currentRatio === '16:9') h = 576;
+            if(currentRatio === '9:16') w = 576;
+
+            const seed = dom.seedInput.value || Math.floor(Math.random() * 2147483647);
+            const styleMod = selectedStyle ? `, style of ${selectedStyle}` : "";
+            const encodedPrompt = encodeURIComponent(promptText + styleMod);
+            const apiModel = selectedModel === 'z-image' ? 'zimage' : selectedModel;
+            
+            const timestamp = Date.now();
+            const imageUrl = `${BASE_IMAGE_URL}${encodedPrompt}?width=${w}&height=${h}&seed=${seed}&model=${apiModel}&nologo=true&key=${storedApiKey}&_cb=${timestamp}`;
+            
+            const tempImg = new Image();
+            tempImg.crossOrigin = "anonymous";
+            
+            if(generationTimeout) clearTimeout(generationTimeout);
+            generationTimeout = setTimeout(() => {
+                handleImageError(promptText, isRetry);
+            }, 55000); 
+
+            tempImg.onload = () => {
+                if(generationTimeout) clearTimeout(generationTimeout);
+                dom.mainImage.src = imageUrl;
+                dom.mainImage.dataset.currentSeed = seed;
+                dom.mainImage.dataset.currentPrompt = promptText;
+                dom.loadingState.classList.add('hidden');
+                dom.resultArea.style.display = 'flex';
+                setUIBusy(false);
+                saveCreation(imageUrl, promptText, seed);
+            };
+
+            tempImg.onerror = () => {
+                if(generationTimeout) clearTimeout(generationTimeout);
+                handleImageError(promptText, isRetry);
+            };
+
+            tempImg.src = imageUrl;
+        }
+
+        function handleImageError(promptText, wasRetry) {
+            if (retryCount < MAX_RETRIES) {
+                retryCount++;
+                setTimeout(() => generateImage(true), 1200);
+            } else {
+                setUIBusy(false);
+                dom.loadingState.classList.add('hidden');
+                if(!dom.mainImage.src || dom.mainImage.src === "") {
+                    dom.displayArea.classList.remove('active');
+                    dom.welcomeMessage.classList.remove('fade-out');
+                } else {
+                    dom.resultArea.style.display = 'flex';
+                }
+                showNotification("A IA está ocupada ou Chave inválida.");
+            }
+        }
+
+        function openImage(id) {
+            const item = savedCreations.find(c => c.id === id);
+            if(!item) return;
+
+            const modal = document.getElementById('galleryModal');
+            const modalImg = document.getElementById('modalImg');
+            const modalTextOnly = document.getElementById('modalTextOnly');
+            const modalPromptFull = document.getElementById('modalPromptFull');
+            const modalPromptSubtitle = document.getElementById('modalPromptSubtitle');
+            const modalMeta = document.getElementById('modalMeta');
+            const btnDownload = document.getElementById('modalDownload');
+            const btnDelete = document.getElementById('modalDelete');
+
+            if (item.type === 'prompt') {
+                modalImg.classList.add('hidden');
+                modalTextOnly.classList.remove('hidden');
+                modalPromptFull.textContent = item.prompt;
+                modalPromptSubtitle.textContent = "Nota de Prompt";
+                btnDownload.classList.add('hidden');
+            } else {
+                modalImg.classList.remove('hidden');
+                modalTextOnly.classList.add('hidden');
+                modalImg.src = item.url;
+                modalPromptSubtitle.textContent = `"${item.prompt}"`;
+                btnDownload.classList.remove('hidden');
+            }
+
+            modalMeta.textContent = `${item.seed ? 'Seed: ' + item.seed + ' • ' : ''} ${new Date(item.date).toLocaleDateString()}`;
+            
+            btnDownload.onclick = () => window.open(item.url, '_blank');
+            btnDelete.onclick = () => {
+                deleteCreation(item.id);
+                closeModal();
+            };
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(e) {
+            if(!e || e.target === document.getElementById('galleryModal')) {
+                document.getElementById('galleryModal').style.display = 'none';
+            }
+        }
+
+        function saveCreation(url, prompt, seed) {
+            if (!url || !prompt) return;
+            if (savedCreations.length > 0 && savedCreations[0].url === url) return;
+            const newItem = {
+                id: Date.now(),
+                type: 'image',
+                url: url,
+                prompt: prompt,
+                seed: seed,
+                date: new Date().toISOString()
+            };
+            savedCreations.unshift(newItem);
+            localStorage.setItem('zImage_creations', JSON.stringify(savedCreations));
+        }
+
+        function deleteCreation(id) {
+            savedCreations = savedCreations.filter(item => item.id !== id);
+            localStorage.setItem('zImage_creations', JSON.stringify(savedCreations));
+            renderFullGallery();
+            showNotification("Removido");
+        }
+
+        function clearFullGallery() {
+            if(confirm("Deseja apagar todas as criações?")) {
+                savedCreations = [];
+                localStorage.setItem('zImage_creations', '[]');
+                renderFullGallery();
+                showNotification("Galeria Limpa");
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `filter-${filter}`);
+            });
+            renderFullGallery();
+        }
+
+        function renderFullGallery() {
+            const grid = document.getElementById('fullGalleryGrid');
+            grid.innerHTML = '';
+            const filtered = savedCreations.filter(item => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'image') return item.type === 'image';
+                if (currentFilter === 'prompt') return item.type === 'prompt';
+                return true;
+            });
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 opacity-20 text-center text-[10px] uppercase tracking-widest">A galeria está vazia</div>`;
+                return;
+            }
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `gallery-card group`;
+                card.onclick = () => openImage(item.id);
+                if (item.type === 'prompt') {
+                    card.innerHTML = `<div class="p-4 text-center text-[9px] text-white/40 italic flex items-center justify-center h-full">"${item.prompt.substring(0,60)}..."</div>`;
+                } else {
+                    card.innerHTML = `<img src="${item.url}" class="w-full h-full object-cover" loading="lazy">`;
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        function lockCurrentSeed() {
+            const seed = dom.mainImage.dataset.currentSeed;
+            if(seed) {
+                dom.seedInput.value = seed;
+                updateStatusUI();
+                showNotification("Seed Fixada");
+            }
+        }
+
+        function downloadImage() { if(dom.mainImage.src) window.open(dom.mainImage.src, '_blank'); }
+
+        function copyLink() {
+            if(!dom.mainImage.src) return;
+            const text = dom.mainImage.src;
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotification("Link Copiado");
+            } catch (err) {}
+            document.body.removeChild(textArea);
+        }
+
+        // Sistema de notificação corrigido: cria elementos individuais que se auto-destroem
+        function showNotification(text) {
+            const notification = document.createElement('div');
+            notification.className = "notification-fade glass-ui px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/10 shadow-lg mb-2 text-center";
+            notification.innerText = text;
+            
+            dom.notificationContainer.appendChild(notification);
+            
+            // Remove o elemento do DOM após a animação de saída terminar (3000ms total)
+            setTimeout(() => {
+                if(notification && notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3100);
+        }
+
+        window.onload = () => {
+            if(storedApiKey) dom.apiKeyInput.value = storedApiKey;
+            updateStatusUI();
+        };
+    </script>
+</body>
+</html>

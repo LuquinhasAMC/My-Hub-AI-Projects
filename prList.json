@@ -1,0 +1,34 @@
+[
+    {
+        "name": "ImageGen",
+        "link": "./prs/imageGen.html",
+        "description": "Gere imagens com IA usando a API da pollinations.ai",
+        "tags": ["IA", "tools"],
+        "aiModel": "Gemini 3 flash"
+    },
+
+    {
+        "name": "Jankenpô",
+        "link": "./prs/Jankenpo.html",
+        "description": "O famoso jogo de pedra, papel e tesoura",
+        "tags": ["jogo"],
+        "aiModel": "Gemini 3 flash"
+    },
+
+    {
+        "name": "Quiz Master",
+        "link": "./prs/QuizMaster.html",
+        "description": "Um jogo/construtor de quizzes",
+        "tags": ["jogo", "tools"],
+        "aiModel": "Gemini 3 flash"
+    },
+    
+    {
+        "name": "Starforce Vanguard",
+        "link": "./prs/StarforceVanguard.html",
+        "description": "Um jogo de navinha",
+        "tags": ["jogo"],
+        "aiModel": "Gemini 3 flash"
+    }
+
+]
