@@ -2,7 +2,7 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Jankenpô Hyper-Punk</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -27,9 +27,10 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            width: 100vw;
         }
 
-        /* Fundo Geométrico de Triângulos Lilás */
+        /* Fundo Geométrico Lilás */
         .bg-pattern {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -45,14 +46,13 @@
             background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
         }
 
-        /* Canvas do Jogo */
+        /* Canvas Responsivo - Full Screen no Mobile */
         .game-canvas {
             background: var(--neon-yellow);
-            width: 92vw;
-            max-width: 440px;
-            height: 85vh;
-            border: 10px solid var(--dark-ink);
-            box-shadow: 20px 20px 0px var(--dark-ink);
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            box-shadow: none;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -60,30 +60,44 @@
             overflow: hidden;
         }
 
+        /* Desktop: Volta a ter bordas e sombra */
+        @media (min-width: 640px) {
+            .game-canvas {
+                width: 92vw;
+                max-width: 440px;
+                height: 85vh;
+                border: 10px solid var(--dark-ink);
+                box-shadow: 20px 20px 0px var(--dark-ink);
+            }
+        }
+
         .header-banner {
             background: var(--neon-pink);
             color: white;
-            padding: 12px;
-            border-bottom: 8px solid var(--dark-ink);
+            padding: 10px;
+            border-bottom: 6px solid var(--dark-ink);
             text-align: center;
-            transform: skewY(-2deg);
-            margin-top: -5px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: skewY(-1deg);
             z-index: 20;
         }
 
         .glitch-title {
-            font-size: 5.5rem;
+            font-size: 3.5rem;
             line-height: 0.9;
             color: white;
-            text-shadow: 4px 4px 0 var(--dark-ink), -2px -2px 0 var(--neon-cyan);
+            /* Sombra atualizada: apenas preta conforme pedido */
+            text-shadow: 4px 4px 0 var(--dark-ink);
             animation: glitch 3s infinite;
+        }
+
+        @media (min-width: 400px) {
+            .glitch-title { font-size: 4.5rem; }
         }
 
         @keyframes glitch {
             0% { transform: translate(0); }
-            2% { transform: translate(-5px, 2px) skew(5deg); }
-            4% { transform: translate(5px, -2px) skew(-5deg); }
+            2% { transform: translate(-3px, 1px); }
+            4% { transform: translate(3px, -1px); }
             6% { transform: translate(0); }
             100% { transform: translate(0); }
         }
@@ -93,35 +107,42 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 20px;
-            position: relative;
+            padding: 10px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 80%);
         }
 
         .hand-box {
             background: white;
-            border: 6px solid var(--dark-ink);
-            width: 120px;
-            height: 120px;
+            border: 5px solid var(--dark-ink);
+            width: 100px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 10px 10px 0px var(--dark-ink);
-            font-size: 5rem;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 8px 8px 0px var(--dark-ink);
+            font-size: 4rem;
+            transition: all 0.2s;
+        }
+
+        @media (min-width: 400px) {
+            .hand-box {
+                width: 125px;
+                height: 125px;
+                font-size: 5rem;
+            }
         }
 
         .cpu-hand { background: var(--neon-cyan); transform: scaleX(-1); }
 
         @keyframes handShake {
-            0%, 100% { transform: translateY(0) rotate(5deg); }
-            50% { transform: translateY(-40px) rotate(-10deg); }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-40px); }
         }
         .shaking { animation: handShake 0.15s infinite; }
 
         @keyframes screenImpact {
             0% { transform: translate(0,0); }
-            10% { transform: translate(-8px, 8px); }
-            20% { transform: translate(8px, -8px); }
+            50% { transform: translate(-8px, 8px); }
             100% { transform: translate(0,0); }
         }
         .impact { animation: screenImpact 0.2s ease-out; }
@@ -129,6 +150,7 @@
         .controls {
             background: var(--dark-ink);
             padding: 20px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
@@ -137,46 +159,90 @@
         .btn-choice {
             background: white;
             border: 4px solid var(--dark-ink);
-            font-size: 2.8rem;
-            padding: 12px 0;
+            font-size: 2.5rem;
+            padding: 15px 0;
             box-shadow: 6px 6px 0 var(--neon-pink);
             cursor: pointer;
-            transition: 0.1s;
-        }
-
-        .btn-choice:hover {
-            transform: translateY(-5px);
-            background: var(--neon-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-choice:active { transform: translate(4px, 4px); box-shadow: 0 0 0; }
 
+        /* Botão Jogar Ajustado: Mantém a inclinação no clique */
+        .btn-start-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            overflow: visible;
+        }
+
+        .btn-start {
+            width: 150%; 
+            flex-shrink: 0;
+            background-color: var(--neon-pink);
+            border-top: 6px solid var(--dark-ink);
+            border-bottom: 6px solid var(--dark-ink);
+            font-size: 2.8rem;
+            padding: 15px 0;
+            color: white;
+            transform: rotate(4deg) skewX(-2deg); /* Rotação fixa */
+            box-shadow: 0px 8px 0px var(--dark-ink);
+            transition: transform 0.1s, box-shadow 0.1s;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 var(--dark-ink);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .btn-start-text {
+            width: 100vw;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        /* Mantém a rotação e skew ao clicar, apenas diminui a escala e a sombra */
+        .btn-start:active {
+            transform: rotate(4deg) skewX(-2deg) scale(0.96); 
+            box-shadow: 0px 4px 0px var(--dark-ink);
+        }
+
         .btn-nav {
             background: var(--dark-ink);
             color: white;
-            padding: 4px 12px;
+            padding: 6px 12px;
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
             border: 2px solid white;
-            cursor: pointer;
-            transition: all 0.2s;
         }
-        .btn-nav:hover { background: var(--neon-pink); }
 
         .swipe-overlay {
             position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: var(--dark-ink);
             z-index: 1000;
-            transform: translate(-100%, -100%) rotate(-45deg);
+            transform: translateX(-100%);
             pointer-events: none;
             visibility: hidden;
         }
+
         .swipe-overlay.active {
             visibility: visible;
-            transform: translate(100%, 100%) rotate(-45deg);
-            transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1);
+            animation: slideSwipe 0.6s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideSwipe {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
         }
 
         .score-box {
@@ -185,8 +251,9 @@
             align-items: center;
             background: #000;
             color: #fff;
-            padding: 10px 15px;
-            font-size: 1.1rem;
+            padding: 12px 15px;
+            padding-top: max(12px, env(safe-area-inset-top));
+            font-size: 1rem;
             border-bottom: 4px solid var(--neon-purple);
         }
     </style>
@@ -199,14 +266,18 @@
         <div id="swipe" class="swipe-overlay"></div>
 
         <!-- TELA INICIAL -->
-        <div id="screen-menu" class="flex flex-col h-full items-center justify-center p-8 text-center">
-            <div class="mb-4 bg-black text-white px-4 py-1 skew-x-[-15deg] font-bold text-sm tracking-widest">EDITION MMXXV</div>
-            <h1 class="glitch-title italic mb-10">JANKENPÔ<br><span class="text-neon-pink">SUPREMO</span></h1>
+        <div id="screen-menu" class="flex flex-col h-full items-center justify-center text-center overflow-hidden">
+            <div class="mb-4 bg-black text-white px-4 py-1 skew-x-[-15deg] font-bold text-sm tracking-widest uppercase z-10">Arcade Edition</div>
             
-            <button onclick="changeScreen('game')" class="btn-choice w-full py-6 bg-yellow-400 text-4xl shadow-[10px_10px_0_#000] hover:shadow-[15px_15px_0_#000]">
-                INICIAR COMBATE
-            </button>
-            <p class="mt-8 text-xs font-bold uppercase opacity-60 tracking-[0.2em] text-black">Toca para provar o teu valor</p>
+            <h1 class="glitch-title italic mb-6 z-10">JANKENPÔ<br><span class="text-neon-pink">SUPREMO</span></h1>
+            
+            <div class="btn-start-wrapper">
+                <button onclick="changeScreen('game')" class="btn-start">
+                    <div class="btn-start-text">JOGAR</div>
+                </button>
+            </div>
+            
+            <p class="mt-8 text-xs font-bold uppercase opacity-60 tracking-[0.2em] text-black z-10">Toca para começar o combate</p>
         </div>
 
         <!-- TELA DE JOGO -->
@@ -225,7 +296,7 @@
 
             <div class="arena">
                 <div id="p-hand" class="hand-box">👊</div>
-                <div class="text-4xl font-black border-4 border-black bg-white p-2 shadow-[5px_5px_0_#000] z-20">VS</div>
+                <div class="text-3xl font-black border-4 border-black bg-white p-2 shadow-[5px_5px_0_#000] z-20">VS</div>
                 <div id="c-hand" class="hand-box cpu-hand">👊</div>
             </div>
 
@@ -243,35 +314,39 @@
         let audio;
 
         function playSound(freq, type = 'square', dur = 0.1) {
-            if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
-            if(audio.state === 'suspended') audio.resume();
-            const o = audio.createOscillator();
-            const g = audio.createGain();
-            o.type = type;
-            o.frequency.setValueAtTime(freq, audio.currentTime);
-            g.gain.setValueAtTime(0.1, audio.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + dur);
-            o.connect(g); g.connect(audio.destination);
-            o.start(); o.stop(audio.currentTime + dur);
+            try {
+                if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+                if(audio.state === 'suspended') audio.resume();
+                const o = audio.createOscillator();
+                const g = audio.createGain();
+                o.type = type;
+                o.frequency.setValueAtTime(freq, audio.currentTime);
+                g.gain.setValueAtTime(0.05, audio.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + dur);
+                o.connect(g); g.connect(audio.destination);
+                o.start(); o.stop(audio.currentTime + dur);
+            } catch(e) {}
         }
 
         function changeScreen(target) {
             const swipe = document.getElementById('swipe');
             playSound(440, 'sawtooth', 0.2);
+            
+            swipe.classList.remove('active');
+            void swipe.offsetWidth;
             swipe.classList.add('active');
             
             setTimeout(() => {
-                document.getElementById('screen-menu').classList.toggle('hidden', target === 'game');
-                document.getElementById('screen-game').classList.toggle('hidden', target === 'menu');
-                document.getElementById('screen-game').style.display = target === 'game' ? 'flex' : 'none';
-                if(target === 'game') resetGame();
+                const isGame = target === 'game';
+                document.getElementById('screen-menu').classList.toggle('hidden', isGame);
+                document.getElementById('screen-game').classList.toggle('hidden', !isGame);
+                document.getElementById('screen-game').style.display = isGame ? 'flex' : 'none';
+                if(isGame) resetGame();
             }, 300);
 
             setTimeout(() => {
-                swipe.style.transition = 'none';
                 swipe.classList.remove('active');
-                setTimeout(() => swipe.style.transition = '', 50);
-            }, 700);
+            }, 600);
         }
 
         function play(playerMove) {
@@ -332,7 +407,7 @@
                     isBusy = false;
                     setTimeout(() => {
                         if(!isBusy) status.innerText = `RD ${round} - ESCOLHE!`;
-                    }, 1000);
+                    }, 1200);
                 }, 500);
             }, 1000);
         }
