@@ -29,6 +29,14 @@
         "description": "Um jogo de navinha",
         "tags": ["jogo"],
         "aiModel": "Gemini 3 flash"
+    },
+
+    {
+        "name": "Punk Cards",
+        "link": "./prs/Punk-Cards.html",
+        "description": "Um jogo de memória com design punk",
+        "tags": ["jogo"],
+        "aiModel": "Gemini 3 flash"
     }
 
 ]

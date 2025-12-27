@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUNK DOODLE MEMORY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Rock+Salt&family=Bangers&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --punk-pink: #ff00ff;
+            --punk-yellow: #ffff00;
+            --punk-cyan: #00ffff;
+            --punk-black: #0a0a0a;
+            --punk-gray: #999999;
+        }
+
+        body {
+            background-color: var(--punk-black);
+            background-image: 
+                url("https://www.transparenttextures.com/patterns/carbon-fibre.png"),
+                radial-gradient(circle at center, #222 0%, #000 100%);
+            color: white;
+            font-family: 'Permanent Marker', cursive;
+            overflow: hidden;
+            user-select: none;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--punk-black);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .splash-text {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            color: var(--punk-yellow);
+            text-shadow: 4px 4px 0px var(--punk-pink);
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); filter: brightness(1); }
+            to { transform: scale(1.05); filter: brightness(1.3); }
+        }
+
+        /* Punk Switch */
+        .punk-switch-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .punk-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .punk-switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #333;
+            transition: .4s;
+            border: 2px solid white;
+            clip-path: polygon(5% 0%, 95% 5%, 100% 90%, 0% 100%);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            clip-path: polygon(10% 10%, 90% 0%, 100% 90%, 0% 100%);
+        }
+
+        input:checked + .slider { background-color: var(--punk-pink); }
+        input:checked + .slider:before { transform: translateX(24px); background-color: var(--punk-yellow); }
+
+        .time-options {
+            display: none;
+            gap: 8px;
+            margin-top: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .time-btn {
+            background: #222;
+            border: 2px solid white;
+            padding: 2px 8px;
+            font-family: 'Bangers';
+            font-size: 0.9rem;
+            transition: 0.2s;
+            color: white;
+        }
+
+        .time-btn.active {
+            background: var(--punk-cyan);
+            color: black;
+            transform: rotate(-3deg);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Timer UI */
+        #timer-container {
+            display: none;
+            width: 100%;
+            height: 12px;
+            background: #222;
+            border: 2px solid white;
+            margin-top: 8px;
+            position: relative;
+            clip-path: polygon(0% 10%, 100% 0%, 98% 90%, 2% 100%);
+        }
+
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--punk-yellow);
+            transition: width 0.1s linear;
+        }
+
+        /* Screen Entry */
+        @keyframes screenEntry {
+            0% { transform: scale(1.5) rotate(15deg); filter: brightness(5) blur(10px); opacity: 0; }
+            50% { transform: scale(0.9) rotate(-8deg); filter: brightness(2) blur(0px); }
+            100% { transform: scale(1) rotate(0deg); filter: brightness(1); opacity: 1; }
+        }
+
+        .screen-active { animation: screenEntry 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+
+        .doodle-border {
+            border: 3px solid white;
+            box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
+            clip-path: polygon(1% 2%, 99% 1%, 97% 98%, 2% 96%, 0% 50%);
+        }
+
+        .punk-btn {
+            background: #fff;
+            color: #000;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: inline-block;
+            font-family: 'Bangers', cursive;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            transition: all 0.1s ease;
+            clip-path: polygon(2% 5%, 98% 1%, 95% 94%, 5% 98%, 1% 45%);
+            border: 3px solid #000;
+            box-shadow: 6px 6px 0px var(--punk-pink);
+            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+            outline: none;
+        }
+
+        .punk-btn:hover {
+            background-color: var(--punk-yellow);
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: -6px 6px 0px var(--punk-cyan);
+            animation: btn-jitter 0.2s infinite linear;
+        }
+
+        @keyframes btn-jitter {
+            0% { transform: scale(1.05) rotate(1deg) translate(0, 0); }
+            25% { transform: scale(1.05) rotate(-1deg) translate(-1px, 1px); }
+            50% { transform: scale(1.05) rotate(1.5deg) translate(1px, -1px); }
+            100% { transform: scale(1.05) rotate(1deg) translate(0, 0); }
+        }
+
+        .btn-cyan { box-shadow: 6px 6px 0px var(--punk-cyan) !important; }
+        .btn-yellow { box-shadow: 6px 6px 0px var(--punk-yellow) !important; }
+
+        #game-container {
+            width: 95%;
+            max-width: 600px;
+            height: 90vh;
+            display: none;
+            flex-direction: column;
+        }
+
+        #grid {
+            flex: 1;
+            display: grid;
+            gap: 10px;
+            padding: 10px;
+            justify-content: center;
+            align-content: center;
+            perspective: 1000px;
+        }
+
+        .card { aspect-ratio: 1/1; width: 100%; cursor: pointer; position: relative; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .card-back {
+            background: #222;
+            border: 2px solid #444;
+            background-image: repeating-linear-gradient(45deg, #222, #222 5px, #282828 5px, #282828 10px);
+            color: var(--punk-yellow);
+        }
+
+        .card-back::after { content: '?'; font-family: 'Rock Salt', cursive; font-size: 1rem; filter: drop-shadow(2px 2px 0px var(--punk-pink)); }
+
+        .card-front {
+            background: #eee;
+            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+            color: black;
+            transform: rotateY(180deg);
+            border: 2px solid white;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .emoji-sticker {
+            display: inline-block;
+            filter: drop-shadow(2px 2px 0px #000) contrast(1.2);
+            -webkit-text-stroke: 1px white;
+            paint-order: stroke fill;
+            text-shadow: 1px 1px 0px white;
+        }
+
+        @keyframes sticker-pop {
+            0% { transform: scale(1) rotate(0); }
+            50% { transform: scale(1.3) rotate(15deg); filter: invert(1); }
+            100% { transform: scale(1.1) rotate(-5deg); filter: invert(0); }
+        }
+
+        .card.matched .emoji-sticker { animation: sticker-pop 0.6s ease-out forwards; }
+        .card.matched .card-front { border-color: #000; background-color: var(--punk-yellow); }
+
+        .glitch-text { animation: glitch 0.3s infinite; font-family: 'Bangers', cursive; }
+
+        @keyframes glitch {
+            0% { transform: skew(2deg); text-shadow: 2px 0 var(--punk-pink); }
+            50% { transform: skew(-2deg); text-shadow: -2px 0 var(--punk-cyan); }
+            100% { transform: skew(0); }
+        }
+
+        .shake-animation { animation: hard-shake 0.3s linear; }
+        @keyframes hard-shake {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-4px, 2px); }
+            40% { transform: translate(4px, -2px); }
+            60% { transform: translate(-2px, 4px); }
+            80% { transform: translate(2px, -4px); }
+        }
+
+        /* Modals */
+        #victory-modal, #game-over-modal, #stats-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--punk-gray);
+            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+            color: black;
+            padding: 2rem 1.5rem;
+            border: 6px solid black;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 10px 10px 0px var(--punk-cyan);
+            animation: modalSlideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            position: relative;
+        }
+
+        @keyframes modalSlideIn {
+            0% { transform: translateY(50px) rotate(5deg); opacity: 0; }
+            100% { transform: translateY(0) rotate(-1deg); opacity: 1; }
+        }
+
+        /* Stats Styling */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            text-align: left;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .stat-item {
+            background: white;
+            border: 2px solid black;
+            padding: 8px;
+            font-size: 0.8rem;
+            font-family: 'Bangers';
+            position: relative;
+        }
+
+        .stat-badge {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            font-size: 0.6rem;
+            background: var(--punk-pink);
+            color: white;
+            padding: 2px 4px;
+            transform: rotate(5deg);
+        }
+
+        .perfect-badge { background: gold; color: black; border: 1px solid black; }
+
+        .platinum-container {
+            margin-top: 20px;
+            border: 3px solid black;
+            background: #eee;
+            padding: 10px;
+        }
+
+        .platinum-bar-bg { height: 20px; background: #333; border: 2px solid black; position: relative; }
+        .platinum-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--punk-cyan), var(--punk-pink)); transition: width 1s ease; }
+        
+        .particle { position: absolute; pointer-events: none; z-index: 10000; font-family: 'Bangers', cursive; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" onclick="initGameAudio()">
+        <div class="mb-4">
+            <h1 class="text-7xl md:text-9xl glitch-text transform -rotate-2">READY?</h1>
+        </div>
+        <p class="splash-text">TOQUE PARA COMEÇAR!</p>
+    </div>
+
+    <!-- MENU PRINCIPAL -->
+    <div id="menu" class="text-center z-10 hidden">
+        <div class="relative inline-block mb-2">
+            <h1 class="text-6xl md:text-8xl glitch-text transform -rotate-6 tracking-tighter leading-none">
+                PUNK<br><span class="text-yellow-300">CARDS</span>
+            </h1>
+        </div>
+        
+        <div class="punk-switch-container">
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] uppercase font-black">TIME ATTACK:</span>
+                <label class="punk-switch">
+                    <input type="checkbox" id="time-mode-toggle" onchange="toggleTimeOptions()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div id="time-options" class="time-options">
+                <button onclick="setTime(15, this)" class="time-btn">15S</button>
+                <button onclick="setTime(25, this)" class="time-btn active">25S</button>
+                <button onclick="setTime(35, this)" class="time-btn">35S</button>
+            </div>
+        </div>
+
+        <div class="my-4">
+            <button onclick="openStats()" class="punk-btn text-xs btn-yellow py-1 px-3 shadow-[4px_4px_0px_#ffff00]">STATUS / RECORDS</button>
+        </div>
+        
+        <div class="flex flex-col gap-3 max-w-xs mx-auto items-center">
+            <button onclick="handleBtnClick(event, 8, 4)" class="punk-btn text-xl w-full">POSER (8)</button>
+            <button onclick="handleBtnClick(event, 12, 4)" class="punk-btn text-xl w-full btn-cyan">RIOT (12)</button>
+            <button onclick="handleBtnClick(event, 20, 5)" class="punk-btn text-xl w-full btn-yellow">ANARCHY (20)</button>
+        </div>
+    </div>
+
+    <!-- TELA DE JOGO -->
+    <div id="game-container" class="z-10">
+        <div class="flex flex-col mb-4 px-4">
+            <div class="flex justify-between items-center w-full">
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-pink-500 uppercase font-black">Rage Meter</span>
+                    <div class="text-xl transform -rotate-2 bg-white text-black px-4 py-1 doodle-border font-black shadow-[3px_3px_0px_#ff00ff]">
+                        MOVES: <span id="moves">0</span>
+                    </div>
+                </div>
+                <button onclick="handleBackClick(event)" class="punk-btn text-sm py-1 px-4 btn-cyan" style="box-shadow: 4px 4px 0px var(--punk-cyan);">FUGIR</button>
+            </div>
+            <div id="timer-container">
+                <div id="timer-bar"></div>
+            </div>
+        </div>
+        <div id="grid"></div>
+    </div>
+
+    <!-- STATS MODAL -->
+    <div id="stats-modal" onclick="if(event.target == this) closeStats()">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 class="text-4xl mb-2 glitch-text uppercase">MEUS STATUS</h2>
+            
+            <div class="platinum-container">
+                <div class="flex justify-between text-xs font-black uppercase mb-1">
+                    <span>Progresso Platina</span>
+                    <span id="platina-percent">0%</span>
+                </div>
+                <div class="platinum-bar-bg">
+                    <div id="platinum-fill" class="platinum-bar-fill"></div>
+                </div>
+                <p class="text-[10px] mt-1 uppercase font-bold text-gray-600">Complete todos os modos sem errar nada!</p>
+            </div>
+
+            <div id="stats-list" class="stats-grid">
+                <!-- Records aqui -->
+            </div>
+
+            <button onclick="closeStats()" class="punk-btn text-xl w-full mt-6 bg-black text-white">VOLTAR</button>
+        </div>
+    </div>
+
+    <!-- MODAL VITORIA -->
+    <div id="victory-modal">
+        <div class="modal-content">
+            <h2 class="text-5xl mb-2 glitch-text uppercase">INSANO!</h2>
+            <div id="victory-perfect" class="hidden bg-yellow-400 text-black p-2 mb-4 font-black border-2 border-black rotate-1">
+                JOGADA PERFEITA! ZERO ERROS! 🤘
+            </div>
+            <p class="text-xl mb-6 font-sans font-black uppercase">CONCLUÍDO EM <span id="final-moves" class="bg-black text-white px-2">0</span> PASSOS.</p>
+            <button onclick="handleBackClick(event)" class="punk-btn text-2xl w-full bg-white text-black border-black hover:bg-yellow-400">DE NOVO</button>
+        </div>
+    </div>
+
+    <!-- MODAL GAME OVER -->
+    <div id="game-over-modal">
+        <div class="modal-content" style="box-shadow: 10px 10px 0px var(--punk-pink);">
+            <h2 class="text-5xl mb-2 glitch-text uppercase text-red-600">MORREU!</h2>
+            <p class="text-xl mb-6 font-sans font-black uppercase">O TEMPO TE DEVOROU...</p>
+            <button onclick="handleBackClick(event)" class="punk-btn text-2xl w-full bg-white text-black border-black hover:bg-red-500">REVANCHE</button>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx;
+        let noiseBuffer;
+        let timeMode = false;
+        let timeLimit = 25;
+        let timeLeft = 25;
+        let timerInterval;
+        let currentDifficulty = 8;
+        let errorCount = 0;
+
+        // Records Structure: { "diff_timeMode_timeLimit": { bestMoves: N, isPerfect: bool } }
+        let records = JSON.parse(localStorage.getItem('punk_records') || '{}');
+
+        function saveRecord(diff, tm, limit, currentMoves, perfect) {
+            const key = `${diff}_${tm}_${tm ? limit : 0}`;
+            const existing = records[key];
+            
+            if (!existing || currentMoves < existing.bestMoves) {
+                records[key] = { 
+                    bestMoves: currentMoves, 
+                    isPerfect: perfect || (existing?.isPerfect || false) 
+                };
+            } else if (perfect) {
+                records[key].isPerfect = true;
+            }
+            
+            localStorage.setItem('punk_records', JSON.stringify(records));
+        }
+
+        function openStats() {
+            const list = document.getElementById('stats-list');
+            list.innerHTML = '';
+            
+            const difficulties = [8, 12, 20];
+            const modes = [false, true];
+            const times = [15, 25, 35];
+            
+            let totalChallenges = 0;
+            let completedPerfect = 0;
+
+            difficulties.forEach(d => {
+                modes.forEach(m => {
+                    const possibleTimes = m ? times : [0];
+                    possibleTimes.forEach(t => {
+                        totalChallenges++;
+                        const key = `${d}_${m}_${t}`;
+                        const rec = records[key];
+                        const diffName = d === 8 ? "POSER" : d === 12 ? "RIOT" : "ANARCHY";
+                        const modeName = m ? `TIME (${t}S)` : "NO TIME";
+                        
+                        const item = document.createElement('div');
+                        item.className = 'stat-item';
+                        
+                        if (rec) {
+                            if (rec.isPerfect) completedPerfect++;
+                            item.innerHTML = `
+                                <div class="font-black">${diffName} - ${modeName}</div>
+                                <div>MELHOR: ${rec.bestMoves} MOVES</div>
+                                ${rec.isPerfect ? '<span class="stat-badge perfect-badge">PERFEITO!</span>' : '<span class="stat-badge">SALVO</span>'}
+                            `;
+                        } else {
+                            item.innerHTML = `
+                                <div class="font-black text-gray-400">${diffName} - ${modeName}</div>
+                                <div class="text-gray-400 italic">SEM REGISTRO</div>
+                            `;
+                        }
+                        list.appendChild(item);
+                    });
+                });
+            });
+
+            const percent = Math.round((completedPerfect / totalChallenges) * 100);
+            document.getElementById('platinum-fill').style.width = percent + '%';
+            document.getElementById('platina-percent').innerText = percent + '%';
+            
+            document.getElementById('stats-modal').style.display = 'flex';
+            playPunkSound('transition');
+        }
+
+        function closeStats() {
+            document.getElementById('stats-modal').style.display = 'none';
+        }
+
+        function toggleTimeOptions() {
+            timeMode = document.getElementById('time-mode-toggle').checked;
+            document.getElementById('time-options').style.display = timeMode ? 'flex' : 'none';
+            playPunkSound('click');
+        }
+
+        function setTime(val, btn) {
+            timeLimit = val;
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            playPunkSound('click');
+        }
+
+        function initGameAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                noiseBuffer = createNoiseBuffer();
+            }
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.remove();
+                document.getElementById('menu').classList.remove('hidden');
+                document.getElementById('menu').classList.add('screen-active');
+                playPunkSound('transition');
+            }, 400);
+        }
+
+        function createNoiseBuffer() {
+            const bufferSize = audioCtx.sampleRate * 0.4;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+            return buffer;
+        }
+
+        function playPunkSound(type) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const gain = audioCtx.createGain();
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click' || type === 'flip') {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(type === 'click' ? 150 : 200, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now);
+                osc.connect(gain);
+                osc.start(); osc.stop(now + 0.1);
+            } else if (type === 'match') {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                gain.gain.setValueAtTime(0.05, now);
+                osc.connect(gain);
+                osc.start(); osc.stop(now + 0.2);
+            } else if (type === 'error') {
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = noiseBuffer;
+                gain.gain.setValueAtTime(0.05, now);
+                noise.connect(gain);
+                noise.start(); noise.stop(now + 0.15);
+            } else if (type === 'transition') {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(60, now);
+                osc.frequency.exponentialRampToValueAtTime(1500, now + 0.4);
+                gain.gain.setValueAtTime(0.05, now);
+                osc.connect(gain);
+                osc.start(); osc.stop(now + 0.4);
+            }
+        }
+
+        function handleBtnClick(event, total, cols) {
+            currentDifficulty = total;
+            createExplosion(event.clientX, event.clientY);
+            playPunkSound('transition');
+            startGame(total, cols);
+        }
+
+        function handleBackClick(event) {
+            if(event) createExplosion(event.clientX, event.clientY);
+            playPunkSound('transition');
+            backToMenu();
+        }
+
+        const emojiPool = ["💀", "🔥", "🤘", "⚡", "💣", "🍄", "🎱", "🎲", "🔪", "🦷", "🧠", "🕷", "🩸", "🥨", "🧨", "⛓", "🛹", "🎸", "🎤", "🧤"];
+        let flippedCards = [];
+        let moves = 0;
+        let matchedCount = 0;
+        let isLock = false;
+
+        function startGame(totalCards, cols) {
+            document.getElementById('menu').classList.add('hidden');
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.style.display = 'flex';
+            gameContainer.classList.add('screen-active');
+            
+            errorCount = 0;
+            if (timeMode) {
+                document.getElementById('timer-container').style.display = 'block';
+                startTimer();
+            } else {
+                document.getElementById('timer-container').style.display = 'none';
+            }
+            setupBoard(totalCards, cols);
+        }
+
+        function startTimer() {
+            timeLeft = timeLimit;
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = '100%';
+            bar.style.backgroundColor = 'var(--punk-yellow)';
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                const percent = (timeLeft / timeLimit) * 100;
+                bar.style.width = percent + '%';
+                if (percent < 30) {
+                    bar.style.backgroundColor = 'var(--punk-pink)';
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    gameOver();
+                }
+            }, 100);
+        }
+
+        function setupBoard(totalCards, cols) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+            
+            moves = 0; matchedCount = 0; flippedCards = []; isLock = false;
+            updateMoves();
+
+            const selectedEmojis = [...emojiPool].sort(() => Math.random() - 0.5).slice(0, totalCards / 2);
+            const gameSet = [...selectedEmojis, ...selectedEmojis].sort(() => Math.random() - 0.5);
+
+            gameSet.forEach((emoji) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.emoji = emoji;
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back doodle-border"></div>
+                        <div class="card-front doodle-border">
+                            <span class="emoji-sticker text-4xl">${emoji}</span>
+                        </div>
+                    </div>`;
+                card.onclick = (e) => flipCard(card, e);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard(card, e) {
+            if (isLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            playPunkSound('flip');
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            if (flippedCards.length === 2) {
+                isLock = true;
+                moves++;
+                updateMoves();
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [c1, c2] = flippedCards;
+            if (c1.dataset.emoji === c2.dataset.emoji) {
+                setTimeout(() => {
+                    playPunkSound('match');
+                    c1.classList.add('matched'); c2.classList.add('matched');
+                    matchedCount += 2;
+                    const rect = c2.getBoundingClientRect();
+                    createExplosion(rect.left + rect.width/2, rect.top + rect.height/2);
+                    flippedCards = []; isLock = false; checkWin();
+                }, 300);
+            } else {
+                errorCount++;
+                setTimeout(() => {
+                    playPunkSound('error');
+                    c1.classList.add('shake-animation'); c2.classList.add('shake-animation');
+                    setTimeout(() => {
+                        c1.classList.remove('flipped', 'shake-animation');
+                        c2.classList.remove('flipped', 'shake-animation');
+                        flippedCards = []; isLock = false;
+                    }, 400);
+                }, 400);
+            }
+        }
+
+        function updateMoves() { document.getElementById('moves').innerText = moves; }
+
+        function checkWin() {
+            if (matchedCount === currentDifficulty) {
+                clearInterval(timerInterval);
+                const isPerfect = (errorCount === 0);
+                saveRecord(currentDifficulty, timeMode, timeLimit, moves, isPerfect);
+                
+                setTimeout(() => {
+                    playPunkSound('transition');
+                    document.getElementById('final-moves').innerText = moves;
+                    const perfUI = document.getElementById('victory-perfect');
+                    if(isPerfect) perfUI.classList.remove('hidden');
+                    else perfUI.classList.add('hidden');
+                    
+                    document.getElementById('victory-modal').style.display = 'flex';
+                }, 500);
+            }
+        }
+
+        function gameOver() {
+            playPunkSound('error');
+            document.getElementById('game-over-modal').style.display = 'flex';
+        }
+
+        function backToMenu() {
+            clearInterval(timerInterval);
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('victory-modal').style.display = 'none';
+            document.getElementById('game-over-modal').style.display = 'none';
+            document.getElementById('stats-modal').style.display = 'none';
+        }
+
+        function createExplosion(x, y) {
+            const words = ['RIOT!', 'KAOS!', 'PUNK!', 'YEAH!', 'OI!', 'ANARCHY!'];
+            for(let i=0; i < 5; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = x + 'px'; p.style.top = y + 'px';
+                p.style.color = ['#ff00ff', '#ffff00', '#00ffff'][i%3];
+                p.innerText = words[Math.floor(Math.random()*words.length)];
+                document.body.appendChild(p);
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 100;
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px)) scale(1.5)`, opacity: 0 }
+                ], { duration: 800 }).onfinish = () => p.remove();
+            }
+        }
+    </script>
+</body>
+</html>
