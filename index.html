@@ -2,236 +2,636 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Hub AI Projects</title>
-    <!-- Tailwind CSS CDN -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Hub AI Projects - OS Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons (usando a biblioteca via ESM) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+        :root {
+            --win-bg: #c0c0c0;
+            --win-border-light: #ffffff;
+            --win-border-dark: #808080;
+            --win-blue: #000080;
+        }
+
+        body { 
+            background-color: #008080; 
+            font-family: 'Tahoma', 'Segoe UI', Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100dvh;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            width: 100%;
+        }
+
+        /* Splash Screen */
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background-color: #000;
+            z-index: 20000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'VT323', monospace;
+        }
+
+        .progress-container {
+            width: 80%;
+            max-width: 300px;
+            height: 20px;
+            border: 2px solid #888;
+            padding: 2px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #000080, #1084d0, #000080);
+            background-size: 200% 100%;
+            animation: moveGradient 2s linear infinite;
+        }
+
+        @keyframes moveGradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        /* Estilo Retro Windows 95/98 */
+        .border-outset {
+            border: 2px solid;
+            border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+        }
+        .border-inset {
+            border: 2px solid;
+            border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+        }
+
+        .hub-container {
+            background-color: var(--win-bg);
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Centralização no Desktop */
+        @media (min-width: 640px) {
+            .hub-container {
+                width: 90vw;
+                height: 85vh;
+                max-width: 1200px;
+                max-height: 800px;
+                box-shadow: 2px 2px 0 0 black;
+            }
+        }
+
+        .retro-title-bar {
+            background: linear-gradient(90deg, var(--win-blue), #1084d0);
+            padding: 3px 3px 3px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .retro-button {
+            background-color: var(--win-bg);
+            border: 2px solid;
+            border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+            padding: 0;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .retro-button:active {
+            border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+            padding: 1px 0 0 1px;
+        }
+
+        .retro-button svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Custom Select */
+        .custom-select-container {
+            position: relative;
+            width: 100%;
+            max-width: 160px;
+            background: white;
+            user-select: none;
+        }
+        .custom-select-trigger {
+            padding: 2px 20px 2px 4px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+        .custom-select-trigger::after {
+            content: '▼';
+            position: absolute;
+            right: 4px;
+            font-size: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .custom-options {
+            position: absolute;
+            top: 100%;
+            left: -2px;
+            right: -2px;
+            background: var(--win-bg);
+            display: none;
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid;
+            border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+        }
+        .custom-select-container.open .custom-options { display: block; }
+        .custom-option {
+            padding: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            color: black;
+        }
+        .custom-option:hover { background: var(--win-blue); color: white; }
+
+        /* Janelas de Projeto */
+        .project-window {
+            position: absolute;
+            background: var(--win-bg);
+            min-width: 280px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.4);
+            touch-action: none;
+        }
+        .project-window.maximized {
+            top: 0 !important; left: 0 !important;
+            width: 100% !important; height: 100% !important;
+            z-index: 9999 !important;
+        }
+
+        .window-content {
+            flex-grow: 1;
+            background: white;
+            margin: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        .window-content iframe { width: 100%; height: 100%; border: none; }
+
+        .handle { position: absolute; background: transparent; z-index: 20; touch-action: none; }
+        .handle-n  { top: -4px; left: 4px; right: 4px; height: 8px; cursor: ns-resize; }
+        .handle-s  { bottom: -4px; left: 4px; right: 4px; height: 8px; cursor: ns-resize; }
+        .handle-e  { top: 4px; bottom: 4px; right: -4px; width: 8px; cursor: ew-resize; }
+        .handle-w  { top: 4px; bottom: 4px; left: -4px; width: 8px; cursor: ew-resize; }
+        .handle-se { bottom: -4px; right: -4px; width: 12px; height: 12px; cursor: nwse-resize; }
+
+        .resize-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 15;
+            display: none;
+            background: rgba(255,255,255,0.01);
+        }
+
+        .crt::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%);
+            background-size: 100% 4px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        ::-webkit-scrollbar { width: 16px; height: 16px; }
+        ::-webkit-scrollbar-track { background: #dfdfdf; border: 1px solid #808080; }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--win-bg); 
+            border: 2px solid; 
+            border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<body class="crt">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 p-2 rounded-lg text-white">
-                    <i data-lucide="terminal"></i>
+    <!-- Splash Screen -->
+    <div id="boot-screen">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold mb-2">My Hub AI</h1>
+            <p class="text-xl">SISTEMA OPERACIONAL v1.0</p>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="boot-progress"></div>
+        </div>
+        <div id="boot-status" class="mt-4 font-mono text-xs opacity-70 uppercase">Inicializando componentes...</div>
+    </div>
+
+    <!-- Container Principal Centralizado -->
+    <div id="desktop" class="relative w-full h-full hidden flex items-center justify-center">
+        
+        <!-- Janela Principal do Hub -->
+        <div class="hub-container border-outset" id="hubWindow" onmousedown="focusWindow('hubWindow')" ontouchstart="focusWindow('hubWindow')">
+            <div class="retro-title-bar" 
+                 onmousedown="startDrag(event, 'hubWindow')"
+                 ontouchstart="startDrag(event, 'hubWindow')">
+                <div class="flex items-center gap-2 pointer-events-none">
+                    <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+                    <span class="uppercase tracking-tight truncate text-xs sm:text-sm">Meus_Projetos_AI.exe</span>
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
-                    My Hub AI Projects
-                </h1>
+                <div class="flex gap-1 pr-1">
+                    <button class="retro-button font-bold text-xs" onclick="toggleMaximize('hubWindow')">□</button>
+                    <button class="retro-button bg-[#ff9999] font-bold text-xs" onclick="window.location.reload()">X</button>
+                </div>
             </div>
 
-            <div class="relative group">
-                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input 
-                    type="text" 
-                    id="searchInput"
-                    placeholder="Procurar por nome, IA ou descrição..."
-                    class="pl-10 pr-4 py-2 border border-slate-200 rounded-full bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-full md:w-80"
-                >
+            <!-- Menu Superior -->
+            <div class="flex gap-4 px-2 py-1 bg-[#c0c0c0] border-b border-[#808080] text-[10px] sm:text-xs">
+                <span onclick="toggleAbout(true)" class="cursor-pointer hover:bg-blue-800 hover:text-white px-1">Sobre</span>
+                <a href="https://github.com/LuquinhasAMC/My-Hub-AI-Projects" target="_blank" class="hover:bg-blue-800 hover:text-white px-1">GitHub</a>
+            </div>
+
+            <!-- Busca e Filtro -->
+            <div class="p-2 bg-[#d4d0c8] border-b border-[#808080] flex flex-wrap gap-2 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold uppercase">Busca:</span>
+                    <input type="text" id="searchInput" class="border-inset px-2 py-0.5 text-xs outline-none w-32 sm:w-48" placeholder="Filtrar nome...">
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold uppercase">Categoria:</span>
+                    <div class="custom-select-container border-inset" id="customSelect">
+                        <div class="custom-select-trigger" id="selectTrigger">Todas</div>
+                        <div class="custom-options" id="selectOptions"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Projetos -->
+            <div class="flex-grow overflow-y-auto bg-white m-1 border-inset p-2">
+                <div id="loading" class="flex flex-col items-center justify-center h-full py-10 gap-2">
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-blue-900"></i>
+                    <p class="font-mono text-[10px]">LENDO prList.json...</p>
+                </div>
+                <div id="projectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 hidden"></div>
+                <div id="emptyState" class="hidden text-center py-10 italic text-gray-500 text-xs">Nenhum projeto encontrado.</div>
+            </div>
+
+            <!-- Barra de Status -->
+            <div class="bg-[#c0c0c0] border-t border-[#808080] px-2 py-0.5 text-[10px] flex justify-between items-center">
+                <div class="flex gap-4">
+                    <span id="projectCount">0 objetos</span>
+                    <span class="hidden sm:inline">|</span>
+                    <span class="hidden sm:inline text-blue-800 font-bold uppercase">Sistema Ativo</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="clock" class="font-mono border-inset px-2 bg-[#d4d0c8]">00:00</span>
+                </div>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Alertas de Erro -->
-        <div id="errorMessage" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-3 text-amber-800 mb-8">
-            <i data-lucide="alert-circle"></i>
-            <p id="errorText" class="text-sm font-medium"></p>
-        </div>
-
-        <!-- Filtros de Tags Dinâmicos -->
-        <div id="filterContainer" class="flex flex-wrap gap-2 mb-8 items-center hidden">
-            <span class="text-sm font-medium text-slate-500 mr-2">Filtrar:</span>
-            <div id="tagFilters" class="flex flex-wrap gap-2">
-                <!-- Tags serão inseridas aqui via JS -->
+    <!-- Modal Sobre -->
+    <div id="aboutModal" class="fixed inset-0 z-[10001] bg-black/40 flex items-center justify-center hidden p-4">
+        <div class="project-window border-outset max-w-lg w-full !static">
+            <div class="retro-title-bar">
+                <span>README.TXT - Bloco de Notas</span>
+                <button onclick="toggleAbout(false)" class="retro-button bg-[#ff9999] text-xs">X</button>
+            </div>
+            <div class="p-4 bg-white border-inset m-1 font-mono text-xs leading-relaxed overflow-y-auto max-h-[60dvh]">
+                <p class="mb-4 font-bold border-b border-black pb-1 uppercase">Informações do Sistema</p>
+                <p class="mb-4 text-justify">
+                    Este hub foi feito inteiramente por IA e os projetos listados aqui também. 
+                </p>
+                <p class="mb-4 text-justify">
+                    Eu decidi publicar este material apenas porque achei que esses projetos em específico valiam a pena serem compartilhados, embora eu não pretendesse fazer isso originalmente.
+                </p>
+                <p class="mb-4 text-justify">
+                    <strong>Atenção:</strong> Tanto o hub quanto os projetos são para uso público sob a <strong>Licença MIT</strong>. Qualquer pessoa pode fazer o que quiser com os projetos, seus códigos-fonte e distribuições.
+                </p>
+                <p class="mb-4">
+                    <strong>Desenvolvimento:</strong> Assistido inteiramente pelo modelo <strong>Gemini 3 Flash</strong>.<br>
+                    <strong>Interface:</strong> Nostalgia Windows 95/98.<br>
+                    <strong>Licença:</strong> MIT (Open Source).
+                </p>
+                <p class="text-green-700 font-bold">> VERIFICAÇÃO DE INTEGRIDADE: OK</p>
+            </div>
+            <div class="p-2 flex justify-center bg-[#c0c0c0] border-t border-[#808080]">
+                <button onclick="toggleAbout(false)" class="retro-button px-6 font-bold text-xs py-1" style="width: auto; padding: 0 10px;">FECHAR</button>
             </div>
         </div>
-
-        <!-- Lista de Projetos -->
-        <div id="loading" class="flex flex-col items-center justify-center py-20 gap-4">
-            <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-indigo-600"></div>
-            <p class="text-slate-500">A carregar viewer...</p>
-        </div>
-
-        <div id="projectGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-            <!-- Cards de projetos inseridos aqui -->
-        </div>
-
-        <!-- Estado Vazio -->
-        <div id="emptyState" class="hidden col-span-full py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
-            <div class="bg-slate-100 p-4 rounded-full text-slate-300">
-                <i data-lucide="folder" class="w-12 h-12"></i>
-            </div>
-            <div>
-                <h3 class="text-slate-600 font-semibold">Nenhum projeto para exibir</h3>
-                <p id="emptyMessage" class="text-slate-400 text-sm mt-1">Adicione projetos ao seu arquivo prList.json.</p>
-            </div>
-        </div>
-    </main>
-
-    <footer class="max-w-6xl mx-auto px-4 py-12 text-center text-slate-400 text-xs border-t border-slate-200 mt-20">
-        <p class="font-medium">Este hub é para uso público sob a licença MIT.</p>
-        <p class="mt-1 opacity-75">Interface dinâmica alimentada por JSON local (Vanilla JS).</p>
-    </footer>
+    </div>
 
     <script>
+        const defaultProjects = [
+            {
+                name: "Simulador de Redes Neurais",
+                description: "Uma visualização interativa de como os neurônios se ativam durante o processamento de dados.",
+                aiModel: "Gemini 3 Flash",
+                link: "#",
+                tags: ["Educação", "IA"]
+            },
+            {
+                name: "Gerador de Paisagens 8-bit",
+                description: "Ferramenta que utiliza algoritmos procedurais para criar cenários de jogos retrô.",
+                aiModel: "Gemini 3 Flash",
+                link: "#",
+                tags: ["Arte", "Gamedev"]
+            }
+        ];
+
         let allProjects = [];
         let currentTag = 'Todas';
+        let topZIndex = 100;
+        const desktop = document.getElementById('desktop');
+        const bootScreen = document.getElementById('boot-screen');
+        const bootStatus = document.getElementById('boot-status');
+        const progressBar = document.getElementById('boot-progress');
 
-        // Inicializar ícones Lucide
-        function updateIcons() {
-            lucide.createIcons();
+        function startBoot() {
+            let progress = 0;
+            const BOOT_DURATION = 2000;
+            const startTime = Date.now();
+
+            const interval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                progress = (elapsed / BOOT_DURATION) * 100;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progressBar.style.width = '100%';
+                    bootStatus.innerText = "SISTEMA PRONTO.";
+                    setTimeout(() => {
+                        bootScreen.style.display = 'none';
+                        desktop.style.display = 'flex';
+                        loadProjects();
+                    }, 500);
+                } else {
+                    progressBar.style.width = progress + '%';
+                    if (progress > 20 && progress < 50) bootStatus.innerText = "Carregando drivers de vídeo...";
+                    if (progress > 50 && progress < 80) bootStatus.innerText = "Verificando arquivos JSON...";
+                    if (progress > 80) bootStatus.innerText = "Iniciando Desktop...";
+                }
+            }, 50);
         }
 
-        // Carregar Projetos do JSON
-        async function loadProjects() {
-            const loadingEl = document.getElementById('loading');
-            const gridEl = document.getElementById('projectGrid');
-            const errorEl = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
+        window.onload = startBoot;
 
+        function getCoords(e) {
+            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        function openProject(name, url) {
+            if(!url || url === "#") return;
+            const winId = 'win-' + Math.random().toString(36).substr(2, 9);
+            const win = document.createElement('div');
+            win.id = winId;
+            win.className = 'project-window border-outset';
+            
+            const isMobile = window.innerWidth < 640;
+            const width = isMobile ? window.innerWidth * 0.95 : 800;
+            const height = isMobile ? window.innerHeight * 0.8 : 550;
+
+            // Centralização Dinâmica
+            const left = (window.innerWidth - width) / 2;
+            const top = (window.innerHeight - height) / 2;
+
+            win.style.width = width + 'px';
+            win.style.height = height + 'px';
+            win.style.top = top + 'px';
+            win.style.left = left + 'px';
+            win.style.zIndex = ++topZIndex;
+
+            win.innerHTML = `
+                <div class="handle handle-n" onmousedown="initResize(event, '${winId}', 'n')" ontouchstart="initResize(event, '${winId}', 'n')"></div>
+                <div class="handle handle-s" onmousedown="initResize(event, '${winId}', 's')" ontouchstart="initResize(event, '${winId}', 's')"></div>
+                <div class="handle handle-e" onmousedown="initResize(event, '${winId}', 'e')" ontouchstart="initResize(event, '${winId}', 'e')"></div>
+                <div class="handle handle-w" onmousedown="initResize(event, '${winId}', 'w')" ontouchstart="initResize(event, '${winId}', 'w')"></div>
+                <div class="handle handle-se" onmousedown="initResize(event, '${winId}', 'se')" ontouchstart="initResize(event, '${winId}', 'se')"></div>
+
+                <div class="retro-title-bar" onmousedown="startDrag(event, '${winId}')" ontouchstart="startDrag(event, '${winId}')">
+                    <div class="flex items-center gap-2 overflow-hidden pointer-events-none">
+                        <i data-lucide="layout" class="w-3 h-3"></i>
+                        <span class="truncate text-[11px] uppercase">${name}</span>
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0 pr-1">
+                        <button class="retro-button" title="Maximizar" onclick="toggleMaximize('${winId}')">□</button>
+                        <button class="retro-button" title="Abrir Externo" onclick="window.open('${url}', '_blank')">
+                            <i data-lucide="external-link"></i>
+                        </button>
+                        <button class="retro-button bg-[#ff9999]" title="Fechar" onclick="closeWindow('${winId}')">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="window-content border-inset">
+                    <div class="resize-overlay" id="overlay-${winId}"></div>
+                    <iframe src="${url}"></iframe>
+                </div>
+            `;
+            
+            desktop.appendChild(win);
+            lucide.createIcons();
+            win.addEventListener('mousedown', () => focusWindow(winId));
+            win.addEventListener('touchstart', () => focusWindow(winId), {passive: true});
+        }
+
+        function focusWindow(id) {
+            const win = document.getElementById(id);
+            if (win) {
+                topZIndex++;
+                win.style.zIndex = topZIndex;
+            }
+        }
+
+        function closeWindow(id) { document.getElementById(id)?.remove(); }
+        function toggleMaximize(id) { document.getElementById(id).classList.toggle('maximized'); }
+
+        let activeEl = null, dragOffset = {x:0, y:0};
+        function startDrag(e, id) {
+            if (e.target.closest('.retro-button')) return;
+            activeEl = document.getElementById(id);
+            if (activeEl.classList.contains('maximized')) return;
+            focusWindow(id);
+            const coords = getCoords(e);
+            dragOffset.x = coords.x - activeEl.offsetLeft;
+            dragOffset.y = coords.y - activeEl.offsetTop;
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchend', stopDrag);
+            document.querySelectorAll('.resize-overlay').forEach(o => o.style.display = 'block');
+        }
+        function onDrag(e) {
+            if (!activeEl) return;
+            if (e.type === 'touchmove') e.preventDefault();
+            const coords = getCoords(e);
+            activeEl.style.left = (coords.x - dragOffset.x) + 'px';
+            activeEl.style.top = (coords.y - dragOffset.y) + 'px';
+        }
+        function stopDrag() { 
+            document.querySelectorAll('.resize-overlay').forEach(o => o.style.display = 'none');
+            activeEl = null; 
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('touchmove', onDrag);
+        }
+
+        let targetWin = null, direction = '', startX, startY, startW, startH, startL, startT;
+        function initResize(e, id, dir) {
+            e.preventDefault(); e.stopPropagation();
+            targetWin = document.getElementById(id);
+            if (targetWin.classList.contains('maximized')) return;
+            direction = dir;
+            const coords = getCoords(e);
+            startX = coords.x; startY = coords.y;
+            const rect = targetWin.getBoundingClientRect();
+            startW = rect.width; startH = rect.height;
+            startL = rect.left; startT = rect.top;
+            document.querySelectorAll('.resize-overlay').forEach(o => o.style.display = 'block');
+            document.addEventListener('mousemove', performResize);
+            document.addEventListener('touchmove', performResize, { passive: false });
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchend', stopResize);
+        }
+        function performResize(e) {
+            if (!targetWin) return;
+            if (e.type === 'touchmove') e.preventDefault();
+            const coords = getCoords(e);
+            const dx = coords.x - startX;
+            const dy = coords.y - startY;
+            if (direction.includes('e')) targetWin.style.width = Math.max(280, startW + dx) + 'px';
+            if (direction.includes('s')) targetWin.style.height = Math.max(200, startH + dy) + 'px';
+            if (direction.includes('w')) { 
+                const newW = Math.max(280, startW - dx);
+                if (newW > 280) { targetWin.style.width = newW + 'px'; targetWin.style.left = (startL + dx) + 'px'; }
+            }
+            if (direction.includes('n')) { 
+                const newH = Math.max(200, startH - dy);
+                if (newH > 200) { targetWin.style.height = newH + 'px'; targetWin.style.top = (startT + dy) + 'px'; }
+            }
+        }
+        function stopResize() {
+            document.querySelectorAll('.resize-overlay').forEach(o => o.style.display = 'none');
+            targetWin = null;
+            document.removeEventListener('mousemove', performResize);
+            document.removeEventListener('touchmove', performResize);
+        }
+
+        function toggleAbout(show) { document.getElementById('aboutModal').style.display = show ? 'flex' : 'none'; }
+        function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+        async function loadProjects() {
+            if (allProjects.length > 0) return;
             try {
                 const response = await fetch('./prList.json');
-                if (!response.ok) throw new Error("Arquivo 'prList.json' não encontrado.");
-                
-                const data = await response.json();
-                allProjects = Array.isArray(data) ? data : [];
-                
+                if (!response.ok) throw new Error();
+                allProjects = await response.json();
+            } catch (err) {
+                allProjects = defaultProjects;
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('projectGrid').classList.remove('hidden');
                 renderFilters();
                 renderProjects();
-            } catch (err) {
-                errorEl.classList.remove('hidden');
-                errorText.innerText = err.message || "Erro ao carregar o ficheiro JSON.";
-                loadingEl.classList.add('hidden');
-            } finally {
-                loadingEl.classList.add('hidden');
-                gridEl.classList.remove('hidden');
             }
         }
 
-        // Renderizar Filtros (Tags Únicas)
         function renderFilters() {
-            const filterContainer = document.getElementById('filterContainer');
-            const tagFilters = document.getElementById('tagFilters');
-            
-            const tagsSet = new Set(['Todas']);
-            allProjects.forEach(p => {
-                if (p.tags && Array.isArray(p.tags)) {
-                    p.tags.forEach(t => tagsSet.add(t));
-                }
-            });
-
-            const tags = Array.from(tagsSet);
-            
-            if (tags.length > 1) {
-                filterContainer.classList.remove('hidden');
-                tagFilters.innerHTML = tags.map(tag => `
-                    <button 
-                        onclick="setFilter('${tag}')"
-                        class="px-4 py-1.5 rounded-full text-sm transition-all duration-200 ${currentTag === tag ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/30'}"
-                        data-tag="${tag}"
-                    >
-                        ${tag}
-                    </button>
-                `).join('');
-            }
+            const tags = new Set(['Todas']);
+            allProjects.forEach(p => (p.tags || []).forEach(t => tags.add(t)));
+            document.getElementById('selectOptions').innerHTML = Array.from(tags).map(tag => `
+                <div class="custom-option border-b border-gray-300 last:border-0" onclick="setFilter('${tag}')">${tag}</div>
+            `).join('');
         }
 
         function setFilter(tag) {
             currentTag = tag;
-            renderFilters();
+            document.getElementById('selectTrigger').innerText = tag;
+            document.getElementById('customSelect').classList.remove('open');
             renderProjects();
         }
 
-        // Renderizar Cards de Projetos
         function renderProjects() {
             const grid = document.getElementById('projectGrid');
-            const emptyState = document.getElementById('emptyState');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
+            const term = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allProjects.filter(p => {
-                const matchesSearch = 
-                    p.name?.toLowerCase().includes(searchTerm) || 
-                    p.description?.toLowerCase().includes(searchTerm) ||
-                    p.aiModel?.toLowerCase().includes(searchTerm);
-                
-                const matchesTag = currentTag === 'Todas' || p.tags?.includes(currentTag);
-                return matchesSearch && matchesTag;
+                const match = [p.name, p.description, p.aiModel].some(f => f?.toLowerCase().includes(term));
+                return match && (currentTag === 'Todas' || (p.tags && p.tags.includes(currentTag)));
             });
 
-            if (filtered.length === 0) {
-                grid.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                document.getElementById('emptyMessage').innerText = searchTerm || currentTag !== 'Todas' 
-                    ? "Tente ajustar os seus filtros ou a pesquisa." 
-                    : "Adicione projetos ao seu arquivo prList.json.";
-            } else {
-                emptyState.classList.add('hidden');
-                grid.innerHTML = filtered.map(project => `
-                    <div class="group flex flex-col bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="bg-slate-100 p-2 rounded-xl text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                                <i data-lucide="folder"></i>
-                            </div>
-                            <div class="flex gap-2">
-                                ${project.link ? `
-                                    <a href="${project.link}" download class="text-slate-400 hover:text-green-600 transition-colors p-1" title="Baixar Arquivos">
-                                        <i data-lucide="download"></i>
-                                    </a>
-                                    <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-indigo-600 transition-colors p-1" title="Ver Projeto">
-                                        <i data-lucide="external-link"></i>
-                                    </a>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        <h3 class="text-lg font-bold mb-2 group-hover:text-indigo-600 transition-colors">${project.name || 'Sem Nome'}</h3>
-                        <p class="text-slate-600 text-sm mb-4 line-clamp-3 leading-relaxed min-h-[3rem]">
-                            ${project.description || "Sem descrição disponível."}
-                        </p>
-
-                        <div class="flex items-center gap-2 mb-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 p-2 rounded-lg border border-slate-100 w-fit">
-                            <i data-lucide="cpu" class="w-3.5 h-3.5 text-indigo-500"></i>
-                            <span>Model: ${project.aiModel || "N/A"}</span>
-                        </div>
-
-                        <div class="flex flex-wrap gap-1.5 pt-4 border-t border-slate-100 mt-auto">
-                            ${project.tags && project.tags.length > 0 
-                                ? project.tags.map(tag => `
-                                    <span class="flex items-center gap-1 text-[10px] bg-indigo-50/50 text-indigo-600 px-2 py-1 rounded-md border border-indigo-100 font-medium">
-                                        <i data-lucide="tag" class="w-2.5 h-2.5"></i>
-                                        ${tag}
-                                    </span>
-                                `).join('') 
-                                : '<span class="text-[10px] text-slate-300 italic">Sem tags</span>'}
+            document.getElementById('projectCount').innerText = `${filtered.length} objetos`;
+            document.getElementById('emptyState').classList.toggle('hidden', filtered.length > 0);
+            
+            grid.innerHTML = filtered.map(p => `
+                <div class="border-outset bg-[#c0c0c0] p-1.5 flex flex-col gap-2 shadow-sm hover:brightness-105 transition-all">
+                    <div class="flex justify-between items-center border-b border-gray-400 pb-1">
+                        <span class="text-[8px] font-bold text-blue-900 bg-white/70 px-1 border border-gray-400 uppercase tracking-tighter">${p.aiModel || 'Gemini 3 Flash'}</span>
+                        <div class="flex gap-1 pr-0.5">
+                            ${p.link ? `
+                                <a href="${p.link}" download="${p.name}" class="retro-button" title="Download Arquivos">
+                                    <i data-lucide="download"></i>
+                                </a>
+                                <button onclick="openProject('${p.name}', '${p.link}')" class="retro-button" title="Abrir em Janela">
+                                    <i data-lucide="app-window"></i>
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
-                `).join('');
-                updateIcons();
-            }
+                    <h3 class="font-bold text-[11px] truncate text-gray-800 uppercase">${p.name}</h3>
+                    <div class="bg-white border-inset p-1.5 text-[10px] h-20 overflow-y-auto leading-tight text-gray-700 font-sans">
+                        ${p.description || 'Sem descrição disponível.'}
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-auto">
+                        ${(p.tags || []).map(tag => `
+                            <span class="text-[7px] bg-[#d4d0c8] text-black px-1.5 py-0.5 border-inset uppercase font-bold tracking-tighter">
+                                ${tag}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
         }
 
-        // Listener para Busca
+        document.getElementById('selectTrigger').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('customSelect').classList.toggle('open');
+        });
+        document.addEventListener('click', () => document.getElementById('customSelect').classList.remove('open'));
         document.getElementById('searchInput').addEventListener('input', renderProjects);
-
-        // Início
-        window.onload = () => {
-            loadProjects();
-            updateIcons();
-        };
+        setInterval(updateClock, 1000);
+        updateClock();
     </script>
 </body>
 </html>

@@ -11,7 +11,7 @@
         "name": "Jankenpô",
         "link": "./prs/Jankenpo.html",
         "description": "O famoso jogo de pedra, papel e tesoura",
-        "tags": ["jogo"],
+        "tags": ["game"],
         "aiModel": "Gemini 3 flash"
     },
 
@@ -19,7 +19,7 @@
         "name": "Quiz Master",
         "link": "./prs/QuizMaster.html",
         "description": "Um jogo/construtor de quizzes",
-        "tags": ["jogo", "tools"],
+        "tags": ["game", "tools"],
         "aiModel": "Gemini 3 flash"
     },
     
@@ -27,7 +27,7 @@
         "name": "Starforce Vanguard",
         "link": "./prs/StarforceVanguard.html",
         "description": "Um jogo de navinha",
-        "tags": ["jogo"],
+        "tags": ["game"],
         "aiModel": "Gemini 3 flash"
     },
 
@@ -35,7 +35,7 @@
         "name": "Punk Cards",
         "link": "./prs/Punk-Cards.html",
         "description": "Um jogo de memória com design punk",
-        "tags": ["jogo"],
+        "tags": ["game"],
         "aiModel": "Gemini 3 flash"
     }
 
